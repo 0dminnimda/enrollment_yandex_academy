@@ -20,6 +20,11 @@ def path_with_docs(decorator: AnyCallable, path: str) -> AnyCallable:
     docs.pop("requestBody", None)
     docs.pop("parameters", None)
 
+    for code, info in docs["responses"].items():
+        if code == "400":
+            info["model"] = Error
+    docs["responses"]["422"] = {}
+
     return decorator(path, **docs)
 
 
