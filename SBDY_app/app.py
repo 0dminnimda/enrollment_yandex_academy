@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Any, Callable
 from uuid import UUID
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from .docs import openapi
-from .models import ShopUnitImportRequest
-
-app = FastAPI(**openapi["info"])
+from .models import Error, ShopUnitImportRequest
 
 
 AnyCallable = Callable[..., Any]
@@ -20,6 +21,16 @@ def path_with_docs(decorator: AnyCallable, path: str) -> AnyCallable:
     docs.pop("parameters", None)
 
     return decorator(path, **docs)
+
+
+app = FastAPI(**openapi["info"])
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request,
+                                       exc: RequestValidationError):
+    return JSONResponse(status_code=400, content=jsonable_encoder(
+        Error(code=400, message="Validation Failed")))
 
 
 @path_with_docs(app.post, "/imports")
