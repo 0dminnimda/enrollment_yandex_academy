@@ -23,7 +23,7 @@ def path_with_docs(decorator: AnyCallable, path: str) -> AnyCallable:
     for code, info in docs["responses"].items():
         if code == "400":
             info["model"] = Error
-    docs["responses"]["422"] = {}
+    docs["responses"]["422"] = {"description": "Never appears"}
 
     return decorator(path, **docs)
 
