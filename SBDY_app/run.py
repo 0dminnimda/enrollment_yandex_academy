@@ -10,17 +10,21 @@ import uvicorn
 from SBDY_app.app import app  # for uvicorn.run
 
 
-def run(docker: bool = False, debug: bool = False):
+DEBUG = False
+
+
+def run(docker: bool = False):
     file = Path(__file__)
     uvicorn.run(
         f"{file.stem}:app",
         host="0.0.0.0" if docker else "localhost",
         port=80,
-        reload=not debug,
+        reload=not DEBUG,
         log_level="info",
         app_dir=str(file.parent.absolute())
     )
 
 
 if __name__ == "__main__":
-    run(docker=False, debug=True)
+    DEBUG = True
+    run(docker=False)
