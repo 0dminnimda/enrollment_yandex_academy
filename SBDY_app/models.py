@@ -1,15 +1,20 @@
+from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Type
+from typing import List, Optional, Type, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from .docs import openapi
 
+
 schemas = openapi["components"]["schemas"]
 
 
-def wrap_schema(cls: Type[BaseModel]) -> Type[BaseModel]:
+BaseModelT = TypeVar("BaseModelT", bound=Type[BaseModel])
+
+
+def wrap_schema(cls: BaseModelT) -> BaseModelT:
     schema = schemas[cls.__name__]
     properties = schema["properties"]
 
@@ -44,7 +49,7 @@ class ShopUnitImport(BaseModel):
 @wrap_schema
 class ShopUnitImportRequest(BaseModel):
     items: List[ShopUnitImport]
-    updateDate: str
+    updateDate: datetime
 
 
 class Error(BaseModel):
