@@ -1,9 +1,12 @@
 import os
+import re
 from glob import glob
 
 from setuptools import find_packages, setup
 
-from SBDY_app import __name__, __version__
+
+init = open("SBDY_app/__init__.py").read()
+dunders = dict(re.findall(r"^__(\S+)__ = \"(.+)\"$", init, re.MULTILINE))
 
 requirements = {}
 for path in glob("requirements/*.txt"):
@@ -14,12 +17,12 @@ for path in glob("requirements/*.txt"):
 with open("README.md") as file:
     long_description = file.read()
 
-github_link = "https://github.com/0dminnimda/{0}".format(__name__)
+github_link = "https://github.com/0dminnimda/{0}".format(dunders["name"])
 
 setup(
-    name=__name__,
-    version=__version__,
-    description="Non-cryptic proof assistant in Python",
+    name=dunders["name"],
+    version=dunders["version"],
+    description="Smol Web App that simulates online shop API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="0dminnimda",
@@ -47,5 +50,5 @@ setup(
     install_requires=requirements.pop("basic"),
     python_requires=">=3.8",
     extras_require=requirements,
-    package_data={__name__: ["py.typed"]},
+    package_data={dunders["name"]: ["py.typed"]},
 )
