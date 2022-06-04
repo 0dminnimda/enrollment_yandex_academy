@@ -1,13 +1,8 @@
-from pathlib import Path
 from typing import Any, Callable
 
-import yaml
 from fastapi import FastAPI
 
-
-openapi_yaml = Path(__file__).parent / "openapi.yaml"
-openapi = yaml.safe_load(openapi_yaml.read_text("utf-8"))
-
+from .docs import openapi
 
 app = FastAPI(**openapi["info"])
 
