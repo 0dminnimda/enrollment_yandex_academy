@@ -13,14 +13,10 @@ def wrap_schema(cls: Type[BaseModel]) -> Type[BaseModel]:
     schema = schemas[cls.__name__]
     properties = schema["properties"]
 
-    # example nat warking ;(
-    # class Config:
-    #     schema_extra = {}
+    class Config:
+        schema_extra = {"example": schema.get("example", {})}
 
-    # if "example" in schema:
-    #     Config.schema_extra["examples"] = [schema["example"]]
-
-    # cls.Config = Config
+    cls.Config = Config  # type: ignore
 
     for name, field in cls.__fields__.items():
         field.field_info.description = properties[name].get("description")
@@ -49,3 +45,8 @@ class ShopUnitImport(BaseModel):
 class ShopUnitImportRequest(BaseModel):
     items: List[ShopUnitImport]
     updateDate: str
+
+
+class Error(BaseModel):
+    code: int
+    message: str
