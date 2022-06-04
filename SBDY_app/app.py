@@ -1,50 +1,44 @@
+from pathlib import Path
+from typing import Mapping
+
+import yaml
 from fastapi import FastAPI
 
 
-app_description = """
-Вступительное задание в Летнюю Школу Бэкенд Разработки Яндекса 2022
-"""
+openapi_yaml = Path(__file__).parent / "openapi.yaml"
+openapi = yaml.safe_load(openapi_yaml.read_text("utf-8"))
 
 
-app = FastAPI(
-    title="Mega Market Open API",
-    description=app_description,
-    version="1.0",
-)
+app = FastAPI(**openapi["info"])
 
 
-decs = {
-    "imports": "",
-    "delete": "",
-    "nodes": "",
-    "sales": "",
-    "statistic": "",
-}
-
-tag1 = "Базовые задачи"
-tag2 = "Дополнительные задачи"
+def path_docs(path: str) -> Mapping[str, str]:
+    result, = openapi["paths"][path].values()
+    result.pop("requestBody", None)
+    result.pop("parameters", None)
+    return result
 
 
-@app.post("/imports", description=decs["imports"], tags=[tag1])
+@app.post("/imports", **path_docs("/imports"))
 def imports():
     return "Not implemented yet"
 
 
-@app.delete("/delete/{id}", description=decs["delete"], tags=[tag1])
+@app.delete("/delete/{id}", **path_docs("/delete/{id}"))
 def delete():
     return "Not implemented yet"
 
 
-@app.get("/nodes/{id}", description=decs["nodes"], tags=[tag1])
+@app.get("/nodes/{id}", **path_docs("/nodes/{id}"))
 def nodes():
     return "Not implemented yet"
 
 
-@app.get("/sales", description=decs["sales"], tags=[tag2])
+@app.get("/sales", **path_docs("/sales"))
 def sales():
     return "Not implemented yet"
 
 
-@app.get("/node/{id}/statistic", description=decs["statistic"], tags=[tag2])
+@app.get("/node/{id}/statistic", **path_docs("/node/{id}/statistic"))
 def node_statistic():
     return "Not implemented yet"
