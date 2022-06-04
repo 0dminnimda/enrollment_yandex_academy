@@ -1,6 +1,6 @@
-# Introductory task in the summer School of Backend development of Yandex 2022
+# Introductory task in the summer School of Backend Development of Yandex 2022
 
-This is the second task in the process of selection to the School of Backend development.
+This is the second task in the process of selection to the School of Backend Development.
 And this is my take on it.
 
 The description of the task is in the [Task.md](Task.md).
