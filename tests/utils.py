@@ -5,7 +5,7 @@ Things that simplify the testing process and help with it
 import random
 import string
 from datetime import datetime
-from typing import List, Type, TypeVar, _GenericAlias
+from typing import List, Type, TypeVar, _GenericAlias  # type: ignore
 from uuid import UUID, uuid4
 
 import pytest
