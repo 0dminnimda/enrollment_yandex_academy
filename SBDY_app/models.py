@@ -14,8 +14,10 @@ schemas = openapi["components"]["schemas"]
 BaseModelT = TypeVar("BaseModelT", bound=Type[BaseModel])
 
 
-def wrap_schema(cls: BaseModelT) -> BaseModelT:
-    schema = schemas[cls.__name__]
+def wrap_schema(cls: BaseModelT, name: Optional[str] = None) -> BaseModelT:
+    if name is None:
+        name = cls.__name__
+    schema = schemas[name]
     properties = schema["properties"]
 
     class Config:
@@ -27,6 +29,12 @@ def wrap_schema(cls: BaseModelT) -> BaseModelT:
         field.field_info.description = properties[name].get("description")
 
     return cls
+
+
+def wrap_other_schema(name: str):
+    def wrapper(cls: BaseModelT) -> BaseModelT:
+        return wrap_schema(cls, name)
+    return wrapper
 
 
 class ShopUnitType(str, Enum):
