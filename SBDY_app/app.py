@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from .docs import openapi
-from .models import Error, ShopUnitImportRequest
+from .models import Error, ImpRequest
 
 
 AnyCallable = Callable[..., Any]
@@ -39,7 +39,7 @@ async def validation_exception_handler(request: Request,
 
 
 @path_with_docs(app.post, "/imports")
-async def imports(req: ShopUnitImportRequest):
+async def imports(req: ImpRequest):
     return "Not implemented yet"
 
 
