@@ -24,6 +24,11 @@ def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
     for code, info in docs["responses"].items():
         if code == "400":
             info["model"] = Error
+
+    # https://github.com/tiangolo/fastapi/issues/227
+    # https://github.com/tiangolo/fastapi/issues/3650
+    # https://github.com/tiangolo/fastapi/issues/2455
+    # https://github.com/tiangolo/fastapi/issues/1376
     docs["responses"]["422"] = {"description": "Never appears"}
 
     return decorator(path, **docs, **kw)
