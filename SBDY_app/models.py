@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Type, TypeVar
@@ -37,8 +39,7 @@ class ShopUnitType(str, Enum):
 ShopUnitType.__doc__ = schemas["ShopUnitType"]["description"]
 
 
-@wrap_schema
-class ShopUnitImport(BaseModel):
+class BaseInfo(BaseModel):
     id: UUID
     name: str
     parentId: Optional[UUID] = None
@@ -47,9 +48,33 @@ class ShopUnitImport(BaseModel):
 
 
 @wrap_schema
+class ShopUnit(BaseInfo):
+    date: datetime
+    children: Optional[List[ShopUnit]] = None
+
+
+ShopUnit.update_forward_refs()
+
+
+@wrap_schema
+class ShopUnitImport(BaseInfo):
+    pass
+
+
+@wrap_schema
 class ShopUnitImportRequest(BaseModel):
     items: List[ShopUnitImport]
     updateDate: datetime
+
+
+@wrap_schema
+class ShopUnitStatisticUnit(BaseInfo):
+    date: datetime
+
+
+@wrap_schema
+class ShopUnitStatisticResponse(BaseModel):
+    items: List[ShopUnitStatisticUnit]
 
 
 class Error(BaseModel):
