@@ -46,21 +46,18 @@ def test_validation(client: TestClient):
     assert response.json() == ERROR_400
 
     # required fields in Import
-    data = default(ImpRequest)
-    del data.items[0].id
-    response = client.post("/imports", data=data.json())
+    string = default(ImpRequest).json(exclude={"items": {0: {"id"}}})
+    response = client.post("/imports", data=string)
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
-    data = default(ImpRequest)
-    del data.items[0].name
-    response = client.post("/imports", data=data.json())
+    string = default(ImpRequest).json(exclude={"items": {0: {"name"}}})
+    response = client.post("/imports", data=string)
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
-    data = default(ImpRequest)
-    del data.items[0].type
-    response = client.post("/imports", data=data.json())
+    string = default(ImpRequest).json(exclude={"items": {0: {"type"}}})
+    response = client.post("/imports", data=string)
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
