@@ -61,10 +61,16 @@ class ShopUnitImport(BaseInfo):
     pass
 
 
+Import = ShopUnitImport
+
+
 @wrap_schema
 class ShopUnitImportRequest(BaseModel):
     items: List[ShopUnitImport]
     updateDate: datetime
+
+
+ImpRequest = ShopUnitImportRequest
 
 
 @wrap_schema
@@ -72,9 +78,15 @@ class ShopUnitStatisticUnit(BaseInfo):
     date: datetime
 
 
+StatUnit = ShopUnitStatisticUnit
+
+
 @wrap_schema
 class ShopUnitStatisticResponse(BaseModel):
     items: List[ShopUnitStatisticUnit]
+
+
+StatResponse = ShopUnitStatisticResponse
 
 
 class Error(BaseModel):
