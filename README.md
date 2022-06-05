@@ -40,3 +40,6 @@ many other nice things it's performant and asynchronous.
 
 In the role of ASGI server, I chose [Uvicorn](https://www.uvicorn.org/) as it seems like the lib used inside of FastAPI.  
 Also see [`Choosing the Right ASGI Server for Deploying FastAPI`](https://github.com/tiangolo/fastapi/issues/2062).
+
+[PyTest](https://docs.pytest.org/en/latest/) is my favorite testing framework for Python, it's simple and pythonic.  
+In addition to this, FastAPI recommends using it, so don't mind me if I do ;)
