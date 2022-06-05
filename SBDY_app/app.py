@@ -8,13 +8,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from .docs import openapi
-from .models import Error, ImpRequest
+from .models import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
+                     StatUnit)
 
 
 AnyCallable = Callable[..., Any]
 
 
-def path_with_docs(decorator: AnyCallable, path: str) -> AnyCallable:
+def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
     docs = openapi["paths"][path][decorator.__name__]
 
     docs.pop("requestBody", None)
@@ -25,7 +26,7 @@ def path_with_docs(decorator: AnyCallable, path: str) -> AnyCallable:
             info["model"] = Error
     docs["responses"]["422"] = {"description": "Never appears"}
 
-    return decorator(path, **docs)
+    return decorator(path, **docs, **kw)
 
 
 app = FastAPI(**openapi["info"])
@@ -48,16 +49,16 @@ async def delete(id: UUID):
     return "Not implemented yet"
 
 
-@path_with_docs(app.get, "/nodes/{id}")
+@path_with_docs(app.get, "/nodes/{id}", response_model=ShopUnit)
 async def nodes(id: UUID):
     return "Not implemented yet"
 
 
-@path_with_docs(app.get, "/sales")
+@path_with_docs(app.get, "/sales", response_model=StatResponse)
 async def sales(date: datetime):
     return "Not implemented yet"
 
 
-@path_with_docs(app.get, "/node/{id}/statistic")
+@path_with_docs(app.get, "/node/{id}/statistic", response_model=StatResponse)
 async def node_statistic(id: UUID):
     return "Not implemented yet"
