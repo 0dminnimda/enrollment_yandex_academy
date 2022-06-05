@@ -44,7 +44,7 @@ class BaseInfo(BaseModel):
     name: str
     parentId: Optional[UUID] = None
     type: ShopUnitType
-    price: int = 0
+    price: Optional[int] = None
 
 
 @wrap_schema
