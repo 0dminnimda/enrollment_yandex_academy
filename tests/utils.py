@@ -61,23 +61,43 @@ factories = {
 T = TypeVar("T")
 
 
+class ImpossibleRecursiveDefinition(Exception):
+    message: str = (
+        "Cannot make a default class instance, definition is recursive,"
+        " there is no possibility to ignore the recursion.")
+
+    def __init__(self):
+        super().__init__(self.message)
+
+
 def default(cls: Type[T], **defaults) -> T:
-    if cls in factories:
-        return factories[cls]()  # type: ignore
+    def _default(cls, visited, defaults):
+        if cls in factories:
+            return factories[cls]()
 
-    if isinstance(cls, _GenericAlias) and cls._name == "List":  # type: ignore
-        return [default(cls.__args__[0])]  # type: ignore
+        if isinstance(cls, _GenericAlias) and cls._name == "List":
+            try:
+                return [_default(cls.__args__[0], visited, {})]
+            except ImpossibleRecursiveDefinition:
+                return []
 
-    try:
-        fields: dict = cls.__fields__  # type: ignore
-    except AttributeError:
-        raise TypeError("'default' only works with pydantic models,"
-                        f" basic types and typing.List-s, found {cls}!")
+        try:
+            fields: dict = cls.__fields__
+        except AttributeError:
+            raise TypeError("'default' only works with pydantic models,"
+                            f" basic types and typing.List-s, found {cls}!")
 
-    for name in fields.keys() - defaults.keys():
-        defaults[name] = default(fields[name].outer_type_)
+        if cls in visited:
+            raise ImpossibleRecursiveDefinition
+        visited.add(cls)
+        for name in fields.keys() - defaults.keys():
+            defaults[name] = _default(fields[name].outer_type_, visited, {})
 
-    return cls(**defaults)  # type: ignore
+        return cls(**defaults)
+
+    visited = set()  # type: ignore
+    return _default(cls, visited, defaults)
+
 
 # def default(cls, **kwargs):
 #     default = dict(
