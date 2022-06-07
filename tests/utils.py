@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi.testclient import TestClient
 from SBDY_app import app
-from SBDY_app.models import ShopUnitType
+from SBDY_app.models import ShopUnitType, Error
 
 
 def setup():
@@ -31,8 +31,8 @@ def do_test(file: str) -> None:
 
 ### json ###
 
-ERROR_400 = {"code": 400, "message": "Validation Failed"}
-ERROR_404 = {"code": 404, "message": "Item not found"}
+ERROR_400 = Error(code=400, message="Validation Failed")
+ERROR_404 = Error(code=404, message="Item not found")
 
 
 ### default ###
