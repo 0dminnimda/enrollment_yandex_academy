@@ -97,14 +97,3 @@ def default(cls: Type[T], **defaults) -> T:
 
     visited = set()  # type: ignore
     return _default(cls, visited, defaults)
-
-
-# def default(cls, **kwargs):
-#     default = dict(
-#         id=uuid4(), name=random_string(),
-#         parentId=uuid4(), type=random_su_type(),
-#         price=random.randint(0, 10**5), date=datetime.today(),
-#         updateDate=datetime.today())
-
-#     default.update(kwargs)
-#     return cls(**default)
