@@ -7,8 +7,7 @@ from utils import ERROR_400, client, default, do_test, setup
 setup()
 
 
-def test_ok(client: TestClient):
-    # different amounts of items
+def test_different_amounts_of_items(client: TestClient):
     data = default(ImpRequest, items=[])
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
@@ -21,20 +20,18 @@ def test_ok(client: TestClient):
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
 
-    # not required fields
-    data = default(ImpRequest)
-    del data.items[0].parentId
-    response = client.post("/imports", data=data.json())
+
+def test_not_required_Import_fields(client: TestClient):
+    string = default(ImpRequest).json(exclude={"items": {0: {"parentId"}}})
+    response = client.post("/imports", data=string)
     assert response.status_code == 200
 
-    data = default(ImpRequest)
-    del data.items[0].price
-    response = client.post("/imports", data=data.json())
+    string = default(ImpRequest).json(exclude={"items": {0: {"price"}}})
+    response = client.post("/imports", data=string)
     assert response.status_code == 200
 
 
-def test_validation(client: TestClient):
-    # required fields in ImpRequest
+def test_ImpRequest_validation(client: TestClient):
     string = default(ImpRequest, items=[]).json(exclude={"items"})
     response = client.post("/imports", data=string)
     assert response.status_code == 400
@@ -45,7 +42,8 @@ def test_validation(client: TestClient):
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
-    # required fields in Import
+
+def test_Import_validation(client: TestClient):
     string = default(ImpRequest).json(exclude={"items": {0: {"id"}}})
     response = client.post("/imports", data=string)
     assert response.status_code == 400
