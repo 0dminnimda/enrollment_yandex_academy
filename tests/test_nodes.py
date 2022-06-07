@@ -15,6 +15,7 @@ def test_unit(client: TestClient):
 
     response = client.get(f"/nodes/{id}")
     assert response.status_code == 200
+    # TODO: check that the item is the same
     thing = ShopUnit(**response.json())  # no ValidationError
 
     # TODO: check that the unit is still there
@@ -27,6 +28,7 @@ def test_empty_category(client: TestClient):
 
     response = client.get(f"/nodes/{id}")
     assert response.status_code == 200
+    # TODO: check that the item is the same
     thing = ShopUnit(**response.json())  # no ValidationError
 
     # TODO: check that the unit is still there
@@ -39,6 +41,7 @@ def test_full_category(client: TestClient):
 
     response = client.get(f"/nodes/{id}")
     assert response.status_code == 200
+    # TODO: check that the item is the same
     thing = ShopUnit(**response.json())  # no ValidationError
 
     # TODO: check that the unit is still there
