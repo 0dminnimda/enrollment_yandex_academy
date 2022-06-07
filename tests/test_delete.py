@@ -9,18 +9,18 @@ setup()
 
 def test_delete(client: TestClient):
     id = default(UUID)
-    # TODO: adding the entry with id to the db
+    # TODO: adding the unit with id to the db
 
     response = client.delete(f"/delete/{id}")
     assert response.status_code == 200
 
-    # TODO: check that the entry is deleted
+    # TODO: check that the unit is deleted
 
     response = client.delete(f"/delete/{id}")
     assert response.status_code == 404
     assert response.json() == ERROR_404
 
-    # TODO: check that the entry is still deleted
+    # TODO: check that the unit is still deleted
 
 
 def test_nonexisting_items(client: TestClient):
@@ -34,11 +34,11 @@ def test_nonexisting_items(client: TestClient):
 
 
 def test_validation(client: TestClient):
-    response = client.delete(f"/delete/{default(str)}")
+    response = client.delete(f"/delete/abooba")
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
-    response = client.delete(f"/delete/{default(int)}")
+    response = client.delete(f"/delete/42069")
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
