@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi.testclient import TestClient
 from SBDY_app.models import Import, ImpRequest
 
@@ -25,6 +26,23 @@ def test_different_amounts_of_items(client: TestClient):
     assert response.status_code == 200
 
     # TODO: check that unit appeared in the db and is same
+
+
+def test_category_price(client: TestClient):
+    id = default(UUID)
+    # TODO: adding the category without children with id to the db
+
+    data = default(ImpRequest, items=[default(Import, parentId=id)])
+    response = client.post("/imports", data=data.json())
+    assert response.status_code == 200
+
+    # TODO: price of the category with id changed
+
+    data = default(ImpRequest, items=[default(Import, parentId=id)])
+    response = client.post("/imports", data=data.json())
+    assert response.status_code == 200
+
+    # TODO: price of the category with id changed again
 
 
 def test_not_required_Import_fields(client: TestClient):
