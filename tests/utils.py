@@ -32,6 +32,7 @@ def do_test(file: str) -> None:
 ### json ###
 
 ERROR_400 = {"code": 400, "message": "Validation Failed"}
+ERROR_404 = {"code": 404, "message": "Item not found"}
 
 
 ### default ###
