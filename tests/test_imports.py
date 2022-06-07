@@ -31,18 +31,19 @@ def test_different_amounts_of_items(client: TestClient):
 def test_category_price(client: TestClient):
     id = default(UUID)
     # TODO: adding the category without children with id to the db
+    # TODO: price of the category with id == 0
 
-    data = default(ImpRequest, items=[default(Import, parentId=id)])
+    data = default(ImpRequest, items=[default(Import, parentId=id, price=420)])
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
 
-    # TODO: price of the category with id changed
+    # TODO: price of the category with id == 420
 
-    data = default(ImpRequest, items=[default(Import, parentId=id)])
+    data = default(ImpRequest, items=[default(Import, parentId=id, price=69)])
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
 
-    # TODO: price of the category with id changed again
+    # TODO: price of the category with id == (420 + 69) / 2
 
 
 def test_not_required_Import_fields(client: TestClient):
