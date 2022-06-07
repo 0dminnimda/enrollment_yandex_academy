@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -31,6 +31,17 @@ def wrap_schema(cls: BaseModelT) -> BaseModelT:
     return cls
 
 
+T = TypeVar("T", bound=Any)
+
+
+def with_name(name: str):
+    def decorator(o: T) -> T:
+        o.__name__ = name
+        # o.__qualname__ = name
+        return o
+    return decorator
+
+
 class ShopUnitType(str, Enum):
     OFFER = "OFFER"
     CATEGORY = "CATEGORY"
@@ -57,36 +68,28 @@ ShopUnit.update_forward_refs()
 
 
 @wrap_schema
-class ShopUnitImport(BaseInfo):
+@with_name("ShopUnitImport")
+class Import(BaseInfo):
     pass
 
 
-Import = ShopUnitImport
-
-
 @wrap_schema
-class ShopUnitImportRequest(BaseModel):
-    items: List[ShopUnitImport]
+@with_name("ShopUnitImportRequest")
+class ImpRequest(BaseModel):
+    items: List[Import]
     updateDate: datetime
 
 
-ImpRequest = ShopUnitImportRequest
-
-
 @wrap_schema
-class ShopUnitStatisticUnit(BaseInfo):
+@with_name("ShopUnitStatisticUnit")
+class StatUnit(BaseInfo):
     date: datetime
 
 
-StatUnit = ShopUnitStatisticUnit
-
-
 @wrap_schema
-class ShopUnitStatisticResponse(BaseModel):
-    items: List[ShopUnitStatisticUnit]
-
-
-StatResponse = ShopUnitStatisticResponse
+@with_name("ShopUnitStatisticResponse")
+class StatResponse(BaseModel):
+    items: List[StatUnit]
 
 
 class Error(BaseModel):
