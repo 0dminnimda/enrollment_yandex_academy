@@ -12,13 +12,19 @@ def test_different_amounts_of_items(client: TestClient):
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
 
+    # TODO: check that unit appeared in the db and is same
+
     data = default(ImpRequest)
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
 
+    # TODO: check that unit appeared in the db and is same
+
     data = default(ImpRequest, items=[default(Import), default(Import)])
     response = client.post("/imports", data=data.json())
     assert response.status_code == 200
+
+    # TODO: check that unit appeared in the db and is same
 
 
 def test_not_required_Import_fields(client: TestClient):
@@ -26,9 +32,13 @@ def test_not_required_Import_fields(client: TestClient):
     response = client.post("/imports", data=string)
     assert response.status_code == 200
 
+    # TODO: check that unit appeared in the db and is same
+
     string = default(ImpRequest).json(exclude={"items": {0: {"price"}}})
     response = client.post("/imports", data=string)
     assert response.status_code == 200
+
+    # TODO: check that unit appeared in the db and is same
 
 
 def test_ImpRequest_validation(client: TestClient):
