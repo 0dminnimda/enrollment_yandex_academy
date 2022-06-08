@@ -19,8 +19,7 @@ IMPORT_BATCHES = [
                 "type": "CATEGORY",
                 "name": "Товары",
                 "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
-                "parentId": None,
-                "children": []
+                "parentId": None
             }
         ],
         "updateDate": "2022-02-01T12:00:00.000Z"
@@ -31,7 +30,7 @@ IMPORT_BATCHES = [
                 "type": "CATEGORY",
                 "name": "Смартфоны",
                 "id": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
-                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
             },
             {
                 "type": "OFFER",
@@ -56,7 +55,7 @@ IMPORT_BATCHES = [
                 "type": "CATEGORY",
                 "name": "Телевизоры",
                 "id": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
             },
             {
                 "type": "OFFER",
