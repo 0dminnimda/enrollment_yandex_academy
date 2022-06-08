@@ -43,6 +43,10 @@ def test_validation(client: TestClient):
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
+    response = client.delete(f"/delete/3fa85f64-5717-4562-b3fc")
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
 
 # TODO: removing category removes its children
 
