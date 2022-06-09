@@ -15,10 +15,17 @@ def wrap_schema(cls: BaseModelT) -> BaseModelT:
     schema = schemas[cls.__name__]
     properties = schema["properties"]
 
-    class Config:
-        schema_extra = {"example": schema.get("example", {})}
+    atribures = dict(
+        schema_extra={"example": schema.get("example", {})}
+    )
 
-    cls.Config = Config  # type: ignore
+    if not hasattr(cls, "Config"):
+        cls.Config = type("Config")  # type: ignore
+
+    Config = cls.Config
+
+    for name, value in atribures.items():
+        setattr(Config, name, value)
 
     for name, field in cls.__fields__.items():
         field.field_info.description = properties[name].get("description")
