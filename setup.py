@@ -17,7 +17,7 @@ for path in glob("requirements/*.txt"):
 with open("README.md") as file:
     long_description = file.read()
 
-github_link = "https://github.com/0dminnimda/{0}".format(dunders["name"])
+github_link = "https://github.com/0dminnimda/enrollment_yandex_academy"
 
 setup(
     name=dunders["name"],
