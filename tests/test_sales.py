@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi.testclient import TestClient
-from SBDY_app.models import ShopUnit, StatResponse, StatUnit
+from SBDY_app.schemas import ShopUnit, StatResponse, StatUnit
 
 from utils import ERROR_400, client, default, do_test, setup
 

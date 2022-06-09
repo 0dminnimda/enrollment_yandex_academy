@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi.testclient import TestClient
-from SBDY_app.models import ShopUnit
+from SBDY_app.schemas import ShopUnit
 
 from utils import ERROR_400, ERROR_404, client, default, do_test, setup
 

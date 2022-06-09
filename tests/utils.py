@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi.testclient import TestClient
 from SBDY_app import app
-from SBDY_app.models import Error, ShopUnitType
+from SBDY_app.schemas import Error, ShopUnitType
 
 
 def setup():

@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from .docs import info, paths
-from .models import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
+from .schemas import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
                      StatUnit)
 from .typedefs import AnyCallable
 
