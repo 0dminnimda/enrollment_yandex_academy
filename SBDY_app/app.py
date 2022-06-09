@@ -65,5 +65,7 @@ async def sales(date: datetime):
 
 
 @path_with_docs(app.get, "/node/{id}/statistic", response_model=StatResponse)
-async def node_statistic(id: UUID):
+async def node_statistic(id: UUID,
+                         dateStart: datetime = datetime.min,
+                         dateEnd: datetime = datetime.max):
     return "Not implemented yet"
