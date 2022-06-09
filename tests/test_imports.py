@@ -32,7 +32,7 @@ def test_different_amounts_of_items(client: TestClient):
 def test_category_price(client: TestClient):
     id = default(UUID)
     # TODO: adding the category without children with id to the db
-    # TODO: price of the category with id == 0
+    # TODO: price of the category with id == None
 
     data = default(ImpRequest, items=[default(Import, parentId=id, price=420)])
     response = client.post("/imports", data=data.json())
