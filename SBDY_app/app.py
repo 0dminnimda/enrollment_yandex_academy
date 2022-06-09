@@ -42,27 +42,27 @@ async def validation_exception_handler(
 
 
 @path_with_docs(app.post, "/imports")
-async def imports(req: ImpRequest):
+async def imports(req: ImpRequest) -> str:
     return "Not implemented yet"
 
 
 @path_with_docs(app.delete, "/delete/{id}")
-async def delete(id: UUID):
+async def delete(id: UUID) -> str:
     return "Not implemented yet"
 
 
 @path_with_docs(app.get, "/nodes/{id}", response_model=ShopUnit)
-async def nodes(id: UUID):
+async def nodes(id: UUID) -> ShopUnit:
     return "Not implemented yet"
 
 
 @path_with_docs(app.get, "/sales", response_model=StatResponse)
-async def sales(date: datetime):
+async def sales(date: datetime) -> StatResponse:
     return "Not implemented yet"
 
 
 @path_with_docs(app.get, "/node/{id}/statistic", response_model=StatResponse)
 async def node_statistic(id: UUID,
                          dateStart: datetime = datetime.min,
-                         dateEnd: datetime = datetime.max):
+                         dateEnd: datetime = datetime.max) -> StatResponse:
     return "Not implemented yet"
