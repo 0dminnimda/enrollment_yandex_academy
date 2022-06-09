@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any, List, Optional, Type, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, NonNegativeInt
 
 from .docs import openapi
 
@@ -55,7 +55,7 @@ class BaseInfo(BaseModel):
     name: str
     parentId: Optional[UUID] = None
     type: ShopUnitType
-    price: Optional[int] = None
+    price: Optional[NonNegativeInt] = None
 
 
 @wrap_schema
