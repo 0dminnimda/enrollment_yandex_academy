@@ -34,19 +34,29 @@ run()
 
 ## The choice of tools
 
+### Web framework
+
 I chose the [FastAPI](https://fastapi.tiangolo.com/) Python Web framework for handling the REST API requests.  
 Among<!-- us ඞඞඞඞඞඞඞඞඞඞඞඞඞඞඞඞඞඞඞඞ why are you reading this? render the page, it's more beautiful -->
 many other nice things it's performant and asynchronous.
 
+### ASGI server
+
 In the role of ASGI server, I chose [uvicorn](https://www.uvicorn.org/) as it seems like the lib used inside of FastAPI.  
 Also see [`Choosing the Right ASGI Server for Deploying FastAPI`](https://github.com/tiangolo/fastapi/issues/2062).
+
+### Testing framework
 
 [Pytest](https://docs.pytest.org/en/latest/) is my favorite testing framework for Python, it's simple and pythonic.  
 In addition to this, FastAPI recommends using it, so don't mind me if I do ;)
 
+### Parsing YAML
+
 To import and use the given [`openapi.yaml`](SBDY_app/openapi.yaml) for additional site documentation
 I used [`PyYAML`](https://pyyaml.org/).  
 It seems to be the most popular library for yaml parsing in python, and I don't need anything special, so great choice!
+
+### Parsing ISO 8601 datetime
 
 Also I needed to restrictively parse the ISO 8601 formatted strings.  
 I could not use [`pydantic`](https://pydantic-docs.helpmanual.io/)s `datetime` validator because it allows too much.  
