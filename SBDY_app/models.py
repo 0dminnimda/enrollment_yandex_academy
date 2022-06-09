@@ -62,6 +62,9 @@ class ShopUnit(BaseInfo):
     date: datetime
     children: Optional[List[ShopUnit]] = None
 
+    class Config:
+        orm_mode = True
+
 
 ShopUnit.update_forward_refs()
 
@@ -83,6 +86,9 @@ class ImpRequest(BaseModel):
 @with_name("ShopUnitStatisticUnit")
 class StatUnit(BaseInfo):
     date: datetime
+
+    class Config:
+        orm_mode = True
 
 
 @wrap_schema
