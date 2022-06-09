@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any, Callable
 from uuid import UUID
 
 from fastapi import FastAPI, Request
@@ -10,9 +9,7 @@ from fastapi.responses import JSONResponse
 from .docs import info, paths
 from .models import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
                      StatUnit)
-
-
-AnyCallable = Callable[..., Any]
+from .typedefs import AnyCallable
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:

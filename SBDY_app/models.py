@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Optional, Type, TypeVar
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, NonNegativeInt
 
-
-BaseModelT = TypeVar("BaseModelT", bound=Type[BaseModel])
 from .docs import schemas
+from .typedefs import BaseModelT, T
 
 
 def wrap_schema(cls: BaseModelT) -> BaseModelT:
@@ -25,9 +24,6 @@ def wrap_schema(cls: BaseModelT) -> BaseModelT:
         field.field_info.description = properties[name].get("description")
 
     return cls
-
-
-T = TypeVar("T", bound=Any)
 
 
 def with_name(name: str):
