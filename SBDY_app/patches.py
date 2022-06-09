@@ -27,5 +27,16 @@ def patch_datetime_validation():
             break
 
 
+def serialize_datetime(dt: datetime) -> str:
+    return dt.isoformat(timespec="microseconds") + "Z"
+
+
+def patch_datetime_serialization():
+    from pydantic.json import ENCODERS_BY_TYPE
+
+    ENCODERS_BY_TYPE[datetime] = serialize_datetime
+
+
 def patch():
     patch_datetime_validation()
+    patch_datetime_serialization()
