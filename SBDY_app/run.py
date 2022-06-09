@@ -13,7 +13,7 @@ from SBDY_app.app import app  # for uvicorn.run
 DEBUG = False
 
 
-def run(docker: bool = False):
+def run(docker: bool = False) -> None:
     file = Path(__file__)
     uvicorn.run(
         f"{file.stem}:app",

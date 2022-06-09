@@ -4,8 +4,8 @@ import yaml
 
 
 openapi_yaml = Path(__file__).parent / "openapi.yaml"
-openapi = yaml.safe_load(openapi_yaml.read_text("utf-8"))
+openapi: dict = yaml.safe_load(openapi_yaml.read_text("utf-8"))
 
-info = openapi["info"]
-paths = openapi["paths"]
-schemas = openapi["components"]["schemas"]
+info: dict = openapi["info"]
+paths: dict = openapi["paths"]
+schemas: dict = openapi["components"]["schemas"]

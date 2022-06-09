@@ -18,7 +18,7 @@ def strict_datetime(value: Any) -> datetime:
         raise DateTimeError() from e
 
 
-def patch_datetime_validation():
+def patch_datetime_validation() -> None:
     from pydantic.validators import _VALIDATORS
 
     for i, (tp, _) in enumerate(_VALIDATORS):
@@ -31,12 +31,12 @@ def serialize_datetime(dt: datetime) -> str:
     return dt.isoformat(timespec="microseconds") + "Z"
 
 
-def patch_datetime_serialization():
+def patch_datetime_serialization() -> None:
     from pydantic.json import ENCODERS_BY_TYPE
 
     ENCODERS_BY_TYPE[datetime] = serialize_datetime
 
 
-def patch():
+def patch() -> None:
     patch_datetime_validation()
     patch_datetime_serialization()

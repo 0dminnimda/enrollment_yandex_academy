@@ -35,8 +35,8 @@ app = FastAPI(**info)
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request,
-                                       exc: RequestValidationError):
+async def validation_exception_handler(
+        request: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(status_code=400, content=jsonable_encoder(
         Error(code=400, message="Validation Failed")))
 
