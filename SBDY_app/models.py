@@ -7,13 +7,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, NonNegativeInt
 
-from .docs import openapi
-
-
-schemas = openapi["components"]["schemas"]
-
 
 BaseModelT = TypeVar("BaseModelT", bound=Type[BaseModel])
+from .docs import schemas
 
 
 def wrap_schema(cls: BaseModelT) -> BaseModelT:

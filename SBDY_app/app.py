@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from .docs import openapi
+from .docs import info, paths
 from .models import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
                      StatUnit)
 
@@ -16,7 +16,7 @@ AnyCallable = Callable[..., Any]
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
-    docs = openapi["paths"][path][decorator.__name__]
+    docs = paths[path][decorator.__name__]
 
     docs.pop("requestBody", None)
     docs.pop("parameters", None)
@@ -34,7 +34,7 @@ def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
     return decorator(path, **docs, **kw)
 
 
-app = FastAPI(**openapi["info"])
+app = FastAPI(**info)
 
 
 @app.exception_handler(RequestValidationError)
