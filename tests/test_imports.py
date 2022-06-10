@@ -47,6 +47,21 @@ def test_category_price(client: TestClient):
     # TODO: price of the category with id == (420 + 69) / 2
 
 
+def test_not_unique_ids(client: TestClient):
+    data = default(ImpRequest, items=[])
+    data.items = [default(Import)] * 2
+    response = client.post("/imports", data=data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+    data = default(ImpRequest, items=[])
+    imp = default(Import)
+    data.items = [default(Import), imp, default(Import), imp, default(Import)]
+    response = client.post("/imports", data=data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
 def test_not_required_Import_fields(client: TestClient):
     string = default(ImpRequest).json(exclude={"items": {0: {"parentId"}}})
     response = client.post("/imports", data=string)

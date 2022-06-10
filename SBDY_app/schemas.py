@@ -5,7 +5,7 @@ from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, NonNegativeInt
+from pydantic import BaseModel, Field, NonNegativeInt, validator
 
 from .docs import schemas
 from .typedefs import BaseModelT, T
@@ -80,6 +80,13 @@ class Import(BaseInfo):
 class ImpRequest(BaseModel):
     items: List[Import]
     updateDate: datetime
+
+    @validator('items')
+    def ids_are_unique(cls, items: List[Import]) -> List[Import]:
+        seen = set()
+        if any(i.id in seen or seen.add(i.id) for i in items):  # type: ignore
+            raise ValueError("All 'id's of the 'items' should be unique")
+        return items
 
 
 @wrap_schema
