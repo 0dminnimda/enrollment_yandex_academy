@@ -13,6 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from SBDY_app import app
 from SBDY_app.schemas import Error, ShopUnitType
+from SBDY_app.typedefs import T
 
 
 def setup():
@@ -99,9 +100,6 @@ factories = {
 }
 
 
-T = TypeVar("T")
-
-
 class ImpossibleRecursiveDefinition(Exception):
     message: str = (
         "Cannot make a default class instance, definition is recursive,"
@@ -121,6 +119,10 @@ def default(cls: Type[T], **defaults) -> T:
                 return [_default(cls.__args__[0], visited, {})]
             except ImpossibleRecursiveDefinition:
                 return []
+
+        for tp, func in factories.items():
+            if issubclass(cls, tp):
+                return func()
 
         try:
             fields: dict = cls.__fields__
