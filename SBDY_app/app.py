@@ -1,15 +1,14 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 
 from .docs import info, paths
 from .schemas import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
                      StatUnit)
 from .typedefs import AnyCallable
+from .exceptions import ItemNotFound, response_400, response_404
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
@@ -35,10 +34,13 @@ app = FastAPI(**info)
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-        request: Request, exc: RequestValidationError) -> JSONResponse:
-    return JSONResponse(status_code=400, content=jsonable_encoder(
-        Error(code=400, message="Validation Failed")))
+async def handler_400(request: Request, exc: Exception) -> Response:
+    return response_400
+
+
+@app.exception_handler(ItemNotFound)
+async def handler_404(request: Request, exc: Exception) -> Response:
+    return response_404
 
 
 @path_with_docs(app.post, "/imports")
