@@ -10,7 +10,7 @@ import uvicorn
 from SBDY_app.app import app  # for uvicorn.run
 
 
-DEBUG = False
+RELOAD = True
 
 
 def run(docker: bool = False) -> None:
@@ -19,12 +19,12 @@ def run(docker: bool = False) -> None:
         f"{file.stem}:app",
         host="0.0.0.0" if docker else "localhost",
         port=80,
-        reload=not DEBUG,
+        reload=RELOAD,
         log_level="info",
         app_dir=str(file.parent.absolute())
     )
 
 
 if __name__ == "__main__":
-    DEBUG = True
+    RELOAD = False
     run(docker=False)
