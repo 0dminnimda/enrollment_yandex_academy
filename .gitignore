@@ -157,3 +157,6 @@ cython_debug/
 
 # Secret
 tests/my_secrets.py
+
+# Datebase
+SBDY_app/sqlite.db
