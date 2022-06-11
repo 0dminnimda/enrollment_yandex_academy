@@ -11,7 +11,6 @@ from .typedefs import DB
 
 
 DATABASE_URL = f"sqlite+aiosqlite:///{Path(__file__).parent}/sqlite.db"
-# DATABASE_URL = "postgresql://user:password@postgresserver/db"
 
 engine = create_async_engine(DATABASE_URL, future=True,
                              connect_args={"check_same_thread": False})

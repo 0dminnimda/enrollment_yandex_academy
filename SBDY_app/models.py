@@ -1,6 +1,5 @@
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeMeta, declarative_base, relationship
-# from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy_utils import UUIDType
 
 from .schemas import ShopUnitType
@@ -22,7 +21,7 @@ class ShopUnit(Base):
 
     id = Column(UUIDType(), primary_key=True, unique=True)
     parentId = Column(UUIDType(), ForeignKey('shop.id'), nullable=True)
-    children = relationship("ShopUnit")  # , lazy='selectin')
+    children = relationship("ShopUnit")
 
     name = Column(String)
     type = Column(Enum(ShopUnitType))

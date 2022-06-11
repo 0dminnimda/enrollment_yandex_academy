@@ -44,9 +44,6 @@ class CRUD:
     def select_shop_units(self) -> Select:
         return select(ShopUnit).options(self.selection)
 
-    # async def shop_units(self, db: DB) -> Result:
-    #     q = await db.execute(self.select_shop_units())
-    #     return q.scalars()
 
     def select_shop_unit_by_id(self, id: UUID) -> Select:
         return self.select_shop_units().filter(ShopUnit.id == id)
@@ -62,9 +59,3 @@ class CRUD:
 
 
 crud = CRUD()
-
-
-# async def run(db: DB, stmt: Select) -> Result:
-#     q = await db.execute(stmt)
-#     return q.scalars()
-
