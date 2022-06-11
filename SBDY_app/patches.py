@@ -28,7 +28,7 @@ def patch_datetime_validation() -> None:
 
 
 def serialize_datetime(dt: datetime) -> str:
-    return dt.isoformat(timespec="microseconds") + "Z"
+    return dt.isoformat(timespec="milliseconds") + "Z"
 
 
 def patch_datetime_serialization() -> None:
