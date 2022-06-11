@@ -5,7 +5,8 @@ from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, NonNegativeInt, validator
+from pydantic import (BaseModel, Field, NonNegativeInt, root_validator,
+                      validator)
 
 from .docs import schemas
 from .typedefs import BaseModelT, T
@@ -61,6 +62,19 @@ class BaseInfo(BaseModel):
 class ShopUnit(BaseInfo):
     date: datetime
     children: Optional[List[ShopUnit]] = None
+
+    @root_validator
+    def ensure_right_children(cls, values):
+        children = values.get("children", None)
+        if children is None:
+            return values
+
+        if values["type"] == ShopUnitType.OFFER:
+            values["children"] = None
+
+        # sanity check because in db it's stored as a list
+        assert isinstance(children, list)
+        return values
 
     class Config:
         orm_mode = True
