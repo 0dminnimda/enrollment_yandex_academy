@@ -4,11 +4,13 @@ from uuid import UUID
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 
+from .crud import crud
+from .datebase import db_injection, db_shutdown, db_startup
 from .docs import info, paths
-from .schemas import (Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse,
-                     StatUnit)
-from .typedefs import AnyCallable
 from .exceptions import ItemNotFound, response_400, response_404
+from .models import ShopUnit as DBShopUnit
+from .schemas import Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse
+from .typedefs import DB, AnyCallable
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
@@ -33,6 +35,16 @@ def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
 app = FastAPI(**info)
 
 
+@app.on_event("startup")
+async def startup():
+    await db_startup()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await db_shutdown()
+
+
 @app.exception_handler(RequestValidationError)
 async def handler_400(request: Request, exc: Exception) -> Response:
     return response_400
@@ -44,8 +56,10 @@ async def handler_404(request: Request, exc: Exception) -> Response:
 
 
 @path_with_docs(app.post, "/imports")
-async def imports(req: ImpRequest) -> str:
-    return "Not implemented yet"
+async def imports(req: ImpRequest, db: DB = db_injection) -> str:
+    await crud.update_units(
+        db, (DBShopUnit(date=req.updateDate, **i.dict()) for i in req.items))
+    return "Successful import"
 
 
 @path_with_docs(app.delete, "/delete/{id}")
@@ -54,8 +68,11 @@ async def delete(id: UUID) -> str:
 
 
 @path_with_docs(app.get, "/nodes/{id}", response_model=ShopUnit)
-async def nodes(id: UUID) -> ShopUnit:
-    return "Not implemented yet"
+async def nodes(id: UUID, db: DB = db_injection):
+    unit = await crud.shop_unit_by_id(db, id)
+    if unit is None:
+        raise ItemNotFound
+    return unit
 
 
 @path_with_docs(app.get, "/sales", response_model=StatResponse)
