@@ -21,8 +21,13 @@ SessionLocal = sessionmaker(bind=engine, class_=DB, expire_on_commit=False)
 async def get_db() -> AsyncGenerator[DB, None]:
     async with SessionLocal() as session:
         async with session.begin():
-            yield session
-
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
+            else:
+                await session.commit()
 
 db_injection = Depends(get_db)
 

@@ -39,7 +39,6 @@ class CRUD:
 
     async def shutdown(self, db: DB) -> None:
         await db.merge(Depth(id=1, depth=self.depth))
-        await db.commit()
 
     def select_shop_units(self) -> Select:
         return select(ShopUnit).options(self.selection)
@@ -55,7 +54,7 @@ class CRUD:
     async def update_units(self, db: DB, units: Iterable[ShopUnit]) -> None:
         tasks = [db.merge(unit) for unit in units]
         await gather(*tasks)
-        await db.commit()
+        await db.flush()
 
 
 crud = CRUD()
