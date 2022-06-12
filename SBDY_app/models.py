@@ -22,15 +22,14 @@ Base: DeclarativeMeta = declarative_base()
 class Depth(Base):
     __tablename__ = 'depth'
 
-    id: int = Column(Integer, primary_key=True, unique=True)  # type: ignore
+    id: int = Column(Integer, primary_key=True)  # type: ignore
     depth: int = Column(Integer)  # type: ignore
 
 
 class ShopUnit(Base):
     __tablename__ = 'shop'
 
-    id: UUID = Column(  # type: ignore
-        UUIDType(), primary_key=True, unique=True)
+    id: UUID = Column(UUIDType(), primary_key=True)  # type: ignore
     parentId: UUID = Column(  # type: ignore
         UUIDType(), ForeignKey('shop.id'), nullable=True)
     children: List[ShopUnit] = relationship("ShopUnit")  # type: ignore
