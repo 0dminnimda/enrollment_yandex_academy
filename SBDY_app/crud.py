@@ -55,6 +55,39 @@ class CRUD:
         q = await db.execute(self.select_shop_unit(id, depth))
         return q.scalars().one_or_none()
 
+    async def shop_unit_parent(self, db: DB, parent_id: UUID,
+                               depth: int = 0) -> ShopUnit:
+        q = await db.execute(self.select_shop_unit(parent_id, depth))
+        return q.scalars().one()
+
+    async def shop_unit_parents(
+        self, db: DB, parent_id: Optional[UUID],
+        results: List[ShopUnit], ids: Set[UUID],
+        depth: int = 0
+    ) -> None:
+
+        if parent_id is None:
+            return None
+
+        if parent_id in ids:
+            return None
+        ids.add(parent_id)
+
+        it = await self.shop_unit_parent(db, parent_id, depth)
+        results.append(it)
+        await self.shop_unit_parents(db, it.parentId, results, ids, depth)
+
+    async def shop_units_parents(
+        self, db: DB, *parent_ids: Optional[UUID], depth: int = 0
+    ) -> Tuple[List[ShopUnit], Set[UUID]]:
+
+        results: List[ShopUnit] = []
+        ids: Set[UUID] = set()
+        tasks = [self.shop_unit_parents(db, id, results, ids, depth)
+                 for id in parent_ids]
+        await gather(*tasks)
+        return results, ids
+
     async def update_shop_units(
         self, db: DB, units: Iterable[ShopUnit]
     ) -> Tuple[ShopUnit, ...]:
