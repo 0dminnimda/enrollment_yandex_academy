@@ -1,3 +1,14 @@
+"""
+Database models
+    Fields of the models are annotated by their python type
+    so typecheckers can really help with code that uses models
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from uuid import UUID
+
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeMeta, declarative_base, relationship
 from sqlalchemy_utils import UUIDType
@@ -11,19 +22,20 @@ Base: DeclarativeMeta = declarative_base()
 class Depth(Base):
     __tablename__ = 'depth'
 
-    id = Column(Integer, primary_key=True, unique=True)
-
-    depth = Column(Integer)
+    id: int = Column(Integer, primary_key=True, unique=True)  # type: ignore
+    depth: int = Column(Integer)  # type: ignore
 
 
 class ShopUnit(Base):
     __tablename__ = 'shop'
 
-    id = Column(UUIDType(), primary_key=True, unique=True)
-    parentId = Column(UUIDType(), ForeignKey('shop.id'), nullable=True)
-    children = relationship("ShopUnit")
+    id: UUID = Column(  # type: ignore
+        UUIDType(), primary_key=True, unique=True)
+    parentId: UUID = Column(  # type: ignore
+        UUIDType(), ForeignKey('shop.id'), nullable=True)
+    children: List[ShopUnit] = relationship("ShopUnit")  # type: ignore
 
-    name = Column(String)
-    type = Column(Enum(ShopUnitType))
-    price = Column(Integer, nullable=True)
-    date = Column(DateTime)
+    name: str = Column(String)  # type: ignore
+    type: ShopUnitType = Column(Enum(ShopUnitType))  # type: ignore
+    price: int = Column(Integer, nullable=True)  # type: ignore
+    date: datetime = Column(DateTime)  # type: ignore
