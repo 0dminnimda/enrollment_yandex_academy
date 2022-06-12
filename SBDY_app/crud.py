@@ -40,15 +40,19 @@ class CRUD:
     async def shutdown(self, db: DB) -> None:
         await db.merge(Depth(id=1, depth=self.depth))
 
-    def select_shop_units(self) -> Select:
-        return select(ShopUnit).options(self.selection)
+    def select_shop_units(self, depth: int) -> Select:
+        if depth == 0:
+            return select(ShopUnit)
+        if depth < 0:
+            return select(ShopUnit).options(self.selection)
+        return select(ShopUnit).options(stack_selectinload(depth))
 
+    def select_shop_unit(self, id: UUID, depth: int) -> Select:
+        return self.select_shop_units(depth).filter(ShopUnit.id == id)
 
-    def select_shop_unit_by_id(self, id: UUID) -> Select:
-        return self.select_shop_units().filter(ShopUnit.id == id)
-
-    async def shop_unit_by_id(self, db: DB, id: UUID) -> Optional[ShopUnit]:
-        q = await db.execute(self.select_shop_unit_by_id(id))
+    async def shop_unit(self, db: DB, id: UUID,
+                        depth: int = -1) -> Optional[ShopUnit]:
+        q = await db.execute(self.select_shop_unit(id, depth))
         return q.scalars().one_or_none()
 
     async def update_units(self, db: DB, units: Iterable[ShopUnit]) -> None:
