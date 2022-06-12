@@ -46,4 +46,3 @@ async def db_shutdown() -> None:
         await crud.shutdown(db)
 
     await engine.dispose()
-
