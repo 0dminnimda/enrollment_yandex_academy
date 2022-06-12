@@ -57,8 +57,18 @@ async def handler_404(request: Request, exc: Exception) -> Response:
 
 @path_with_docs(app.post, "/imports")
 async def imports(req: ImpRequest, db: DB = db_injection) -> str:
-    await crud.update_units(
-        db, (DBShopUnit(date=req.updateDate, **i.dict()) for i in req.items))
+    args = dict(date=req.updateDate, sub_offers_count=0)
+    units = await crud.update_shop_units(
+        db, (DBShopUnit(**args, **i.dict()) for i in req.items))
+
+    for unit in units:
+        if unit.parentId is None:
+            continue
+
+        parent = await crud.shop_unit_parent(db, unit.parentId, depth=1)
+        if parent.type == ShopUnitType.OFFER:
+            raise RequestValidationError([])
+
     return "Successful import"
 
 
