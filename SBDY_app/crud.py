@@ -1,5 +1,5 @@
 from asyncio import gather
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional, Set, Tuple
 from uuid import UUID
 
 from sqlalchemy.engine import Result
@@ -55,10 +55,14 @@ class CRUD:
         q = await db.execute(self.select_shop_unit(id, depth))
         return q.scalars().one_or_none()
 
-    async def update_units(self, db: DB, units: Iterable[ShopUnit]) -> None:
+    async def update_shop_units(
+        self, db: DB, units: Iterable[ShopUnit]
+    ) -> Tuple[ShopUnit, ...]:
+
         tasks = [db.merge(unit) for unit in units]
-        await gather(*tasks)
+        result = await gather(*tasks)
         await db.flush()
+        return result
 
 
 crud = CRUD()
