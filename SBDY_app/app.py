@@ -1,13 +1,12 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import FastAPI, Request, Response
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 
 from .crud import crud
 from .datebase import db_injection, db_shutdown, db_startup
 from .docs import info, paths
-from .exceptions import ItemNotFound, response_400, response_404
+from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .models import ShopUnit as DBShopUnit
 from .schemas import Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse
 from .typedefs import DB, AnyCallable
@@ -33,6 +32,7 @@ def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
 
 
 app = FastAPI(**info)
+add_exception_handlers(app)
 
 
 @app.on_event("startup")
@@ -45,14 +45,8 @@ async def shutdown():
     await db_shutdown()
 
 
-@app.exception_handler(RequestValidationError)
-async def handler_400(request: Request, exc: Exception) -> Response:
-    return response_400
 
 
-@app.exception_handler(ItemNotFound)
-async def handler_404(request: Request, exc: Exception) -> Response:
-    return response_404
 
 
 @path_with_docs(app.post, "/imports")
