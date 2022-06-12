@@ -92,6 +92,7 @@ class CRUD:
         self, db: DB, units: Iterable[ShopUnit]
     ) -> Tuple[ShopUnit, ...]:
 
+        # useful? make_transient_to_detached
         tasks = [db.merge(unit) for unit in units]
         result = await gather(*tasks)
         await db.flush()
