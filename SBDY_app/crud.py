@@ -104,13 +104,13 @@ class CRUD:
 
     async def update_shop_units(
         self, db: DB, units: Iterable[ShopUnit]
-    ) -> Tuple[ShopUnit, ...]:
+    ) -> List[ShopUnit]:
 
         # useful? make_transient_to_detached
         tasks = [db.merge(unit) for unit in units]
         result = await gather(*tasks)
         await db.flush()
-        return result
+        return result  # type: ignore
 
 
 crud = CRUD()
