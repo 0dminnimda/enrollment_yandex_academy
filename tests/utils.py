@@ -47,8 +47,8 @@ class Client(TestClient):
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
+def client() -> Client:
+    return Client(app)
 
 
 def do_test(file: str) -> None:

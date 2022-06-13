@@ -1,15 +1,13 @@
 from datetime import datetime
 
-from fastapi.testclient import TestClient
 from SBDY_app.schemas import ShopUnit, StatResponse, StatUnit
 
-from utils import ERROR_400, client, default, do_test, setup
-
+from utils import ERROR_400, Client, client, default, do_test, setup
 
 setup()
 
 
-def test_ok(client: TestClient):
+def test_ok(client: Client):
     date = default(datetime)
     response = client.get("/sales", params={"date": date})
     assert response.status_code == 200
@@ -24,7 +22,7 @@ def test_ok(client: TestClient):
     assert response.json() == StatResponse(items=[StatUnit(**unit.dict())])
 
 
-def test_validation(client: TestClient):
+def test_validation(client: Client):
     response = client.get("/sales")
     assert response.status_code == 400
     assert response.json() == ERROR_400
