@@ -86,7 +86,16 @@ ShopUnit.update_forward_refs()
 @wrap_schema
 @with_name("ShopUnitImport")
 class Import(BaseInfo):
-    pass
+    @root_validator
+    def price_is_fine(cls, values):
+        tp = values["type"]
+        if tp == ShopUnitType.CATEGORY:
+            if values.get("price", None) is not None:
+                raise ValueError("'price' of the categories should be null")
+        elif tp == ShopUnitType.OFFER:
+            if values.get("price", None) is None:
+                raise ValueError("'price' of the offer should not be null")
+        return values
 
 
 @wrap_schema

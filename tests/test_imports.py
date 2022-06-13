@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi.testclient import TestClient
-from SBDY_app.schemas import Import, ImpRequest
+from SBDY_app.schemas import Import, ImpRequest, ShopUnitType
 
 from utils import ERROR_400, client, default, do_test, setup
 
@@ -57,6 +57,27 @@ def test_not_unique_ids(client: TestClient):
     data = default(ImpRequest, items=[])
     imp = default(Import)
     data.items = [default(Import), imp, default(Import), imp, default(Import)]
+    response = client.post("/imports", data=data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
+def test_valid_category_price(client: TestClient):
+    imp = default(Import, type=ShopUnitType.CATEGORY, price=None)
+    data = default(ImpRequest, items=[imp])
+    response = client.post("/imports", data=data.json())
+    assert response.status_code == 200
+
+    imp = default(Import, type=ShopUnitType.CATEGORY)
+    data = default(ImpRequest, items=[imp])
+    string = data.json(exclude={"items": {0: {"price"}}})
+    response = client.post("/imports", data=string)
+    assert response.status_code == 200
+
+
+def test_invalid_category_price(client: TestClient):
+    imp = default(Import, type=ShopUnitType.CATEGORY)
+    data = default(ImpRequest, items=[imp])
     response = client.post("/imports", data=data.json())
     assert response.status_code == 400
     assert response.json() == ERROR_400
