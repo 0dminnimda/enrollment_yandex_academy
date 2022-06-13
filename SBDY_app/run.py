@@ -3,6 +3,7 @@ This file allows you to run the app programmatically,
 and also enables debugging if this file is run as the main
 """
 
+import sys
 from pathlib import Path
 
 import uvicorn
@@ -10,7 +11,8 @@ import uvicorn
 from SBDY_app.app import app  # for uvicorn.run
 
 
-RELOAD = True
+RELOAD = False  # by default we don't reload, normal production mode
+DEBUGGING = 'debugpy' in sys.modules
 
 
 def run(host: str = "localhost") -> None:
@@ -26,5 +28,10 @@ def run(host: str = "localhost") -> None:
 
 
 if __name__ == "__main__":
-    RELOAD = False
+    # but if this file is launched directly, this is a sign that it is a dev,
+    # therefore, if we do not debugging, which requires RELOAD == False,
+    # we set the RELOAD to True to simplify the development
+    if not DEBUGGING:
+        RELOAD = True
+
     run()
