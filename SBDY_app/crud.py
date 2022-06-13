@@ -60,6 +60,11 @@ class CRUD:
         q = await db.execute(self.select_shop_unit(parent_id, depth))
         return q.scalars().one()
 
+    async def shop_units_parents(self, db: DB, parent_ids: Iterable[UUID],
+                                 depth: int = 0) -> List[ShopUnit]:
+        tasks = [self.shop_unit_parent(db, id, depth) for id in parent_ids]
+        return await gather(*tasks)  # type: ignore
+
     async def all_shop_unit_parents(
         self, db: DB, parent_id: Optional[UUID],
         results: List[ShopUnit], ids: Set[UUID],
