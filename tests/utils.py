@@ -33,8 +33,11 @@ class Client(TestClient):
     def nodes(self, id: Any):
         return self.get(f"/nodes/{id}")
 
-    def sales(self, date: datetime):
-        return self.get("/sales", params={"date": date})  # type: ignore
+    def sales(self, date: Any = None):
+        params = {}
+        if date is not None:
+            params["date"] = date
+        return self.get("/sales", params=params)
 
     def stats(self, id: Any, dateStart: Optional[datetime] = None,
               dateEnd: Optional[datetime] = None):
