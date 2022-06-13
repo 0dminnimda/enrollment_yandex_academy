@@ -88,7 +88,7 @@ ShopUnit.update_forward_refs()
 class Import(BaseInfo):
     @root_validator
     def price_is_fine(cls, values):
-        tp = values["type"]
+        tp = values.get("type", None)
         if tp == ShopUnitType.CATEGORY:
             if values.get("price", None) is not None:
                 raise ValueError("'price' of the categories should be null")
