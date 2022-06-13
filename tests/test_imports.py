@@ -14,13 +14,16 @@ def test_different_amounts_of_items(client: Client):
 
     # TODO: check that unit appeared in the db and is same
 
-    data = default(ImpRequest)
+    data = default(ImpRequest, items=[default(Import, parentId=None)])
     response = client.imports(data.json())
     assert response.status_code == 200
 
     # TODO: check that unit appeared in the db and is same
 
-    data = default(ImpRequest, items=[default(Import), default(Import)])
+    data = default(
+        ImpRequest,
+        items=[default(Import, parentId=None),
+               default(Import, parentId=None)])
     response = client.imports(data.json())
     assert response.status_code == 200
 
@@ -61,12 +64,14 @@ def test_not_unique_ids(client: Client):
 
 
 def test_valid_category_price(client: Client):
-    imp = default(Import, type=ShopUnitType.CATEGORY, price=None)
+    imp = default(Import, parentId=None,
+                  type=ShopUnitType.CATEGORY, price=None)
     data = default(ImpRequest, items=[imp])
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    imp = default(Import, type=ShopUnitType.CATEGORY)
+    imp = default(Import, parentId=None,
+                  type=ShopUnitType.CATEGORY, price=None)
     data = default(ImpRequest, items=[imp])
     string = data.json(exclude={"items": {0: {"price"}}})
     response = client.imports(string)
@@ -74,7 +79,22 @@ def test_valid_category_price(client: Client):
 
 
 def test_invalid_category_price(client: Client):
-    imp = default(Import, type=ShopUnitType.CATEGORY)
+    imp = default(Import)
+    imp.type = ShopUnitType.CATEGORY
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
+def test_type_change(client: Client):
+    imp = default(Import, parentId=None,
+                  type=ShopUnitType.CATEGORY, price=None)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    imp.type = ShopUnitType.OFFER
     data = default(ImpRequest, items=[imp])
     response = client.imports(data.json())
     assert response.status_code == 400
