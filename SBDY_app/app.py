@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from uuid import UUID
 
 from fastapi import FastAPI
@@ -8,7 +9,8 @@ from .datebase import db_injection, db_shutdown, db_startup
 from .docs import info, paths
 from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .models import ShopUnit as DBShopUnit
-from .schemas import Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse
+from .schemas import (Error, Import, ImpRequest, ShopUnit, ShopUnitType,
+                      StatResponse)
 from .typedefs import DB, AnyCallable
 
 
@@ -45,23 +47,50 @@ async def shutdown():
     await db_shutdown()
 
 
-
-
-
-
 @path_with_docs(app.post, "/imports")
 async def imports(req: ImpRequest, db: DB = db_injection) -> str:
-    args = dict(date=req.updateDate, sub_offers_count=0)
-    units = await crud.update_shop_units(
-        db, (DBShopUnit(**args, **i.dict()) for i in req.items))
+    items = {imp.id: imp for imp in req.items}
 
+    units = await crud.shop_units(db, list(items.keys()))
     for unit in units:
-        if unit.parentId is None:
+        if items[unit.id].type != unit.type:
+            raise ValidationFailed
+
+    parents_in_db: List[UUID] = []
+    for imp in req.items:
+        if imp.parentId is None:
             continue
 
-        parent = await crud.shop_unit_parent(db, unit.parentId, depth=1)
-        if parent.type == ShopUnitType.OFFER:
-            raise RequestValidationError([])
+        parent = items.get(imp.parentId, None)
+        if parent is None:
+            parents_in_db.append(imp.parentId)
+        elif parent.type != ShopUnitType.CATEGORY:
+            raise ValidationFailed
+
+    parents: List[DBShopUnit] = []
+    for parent_id in parents_in_db:
+        parent = await crud.shop_unit_parent(db, parent_id)
+        if parent.type != ShopUnitType.CATEGORY:
+            raise ValidationFailed
+        parents.append(parent)
+
+    parents += (await crud.all_shop_units_parents(
+        db, (p.parentId for p in parents)))[0]
+
+    for parent in parents:
+        parent.date = req.updateDate
+
+    await crud.update_shop_units(db, parents)
+
+    kw = dict(date=req.updateDate, sub_offers_count=0)
+    units = await crud.update_shop_units(
+        db, (DBShopUnit(**kw, **imp.dict()) for imp in req.items))
+
+    # for parent in parents:
+    #     count = 0
+    #     summation = 0
+    #     for sub in parent.children:
+    #         pass
 
     return "Successful import"
 
@@ -73,7 +102,7 @@ async def delete(id: UUID) -> str:
 
 @path_with_docs(app.get, "/nodes/{id}", response_model=ShopUnit)
 async def nodes(id: UUID, db: DB = db_injection):
-    unit = await crud.shop_unit_by_id(db, id)
+    unit = await crud.shop_unit(db, id)
     if unit is None:
         raise ItemNotFound
     return unit
