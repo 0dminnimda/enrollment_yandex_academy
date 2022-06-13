@@ -30,7 +30,15 @@ from SBDY_app import run
 run()
 ```
 
-<!-- Command line / `run()` arguments: -->
+## Help
+
+Run
+
+```console
+$ python -m SBDY_app -h
+```
+
+to see what arguments `run`/CLI takes
 
 ## The choice of tools
 
