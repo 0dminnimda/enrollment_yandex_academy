@@ -13,11 +13,11 @@ from SBDY_app.app import app  # for uvicorn.run
 RELOAD = True
 
 
-def run(docker: bool = False) -> None:
+def run(host: str = "localhost") -> None:
     file = Path(__file__)
     uvicorn.run(
         f"{file.stem}:app",
-        host="0.0.0.0" if docker else "localhost",
+        host=host,
         port=80,
         reload=RELOAD,
         log_level="info",
@@ -27,4 +27,4 @@ def run(docker: bool = False) -> None:
 
 if __name__ == "__main__":
     RELOAD = False
-    run(docker=False)
+    run()
