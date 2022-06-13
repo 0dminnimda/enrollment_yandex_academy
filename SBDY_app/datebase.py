@@ -5,6 +5,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from . import options
 from .crud import crud
 from .models import Base
 from .typedefs import DB
@@ -34,7 +35,8 @@ db_injection = Depends(get_db)
 
 async def db_startup() -> None:
     async with engine.begin() as conn:
-        # await conn.run_sync(Base.metadata.drop_all)  # type: ignore
+        if options.DEV_MODE:
+            await conn.run_sync(Base.metadata.drop_all)  # type: ignore
         await conn.run_sync(Base.metadata.create_all)  # type: ignore
 
     async for db in get_db():
