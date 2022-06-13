@@ -11,7 +11,7 @@ def test_unit(client: Client):
     id = default(UUID)
     # TODO: adding the unit with id to the db
 
-    response = client.get(id)
+    response = client.nodes(id)
     assert response.status_code == 200
     # TODO: check that the item is the same
     thing = ShopUnit(**response.json())  # no ValidationError
@@ -24,7 +24,7 @@ def test_empty_category(client: Client):
     id = default(UUID)
     # TODO: adding the category without children with id to the db
 
-    response = client.get(id)
+    response = client.nodes(id)
     assert response.status_code == 200
     # TODO: check that the item is the same
     thing = ShopUnit(**response.json())  # no ValidationError
@@ -37,7 +37,7 @@ def test_full_category(client: Client):
     id = default(UUID)
     # TODO: adding the category with children with id to the db
 
-    response = client.get(id)
+    response = client.nodes(id)
     assert response.status_code == 200
     # TODO: check that the item is the same
     thing = ShopUnit(**response.json())  # no ValidationError
@@ -47,21 +47,21 @@ def test_full_category(client: Client):
 
 
 def test_nonexisting_items(client: Client):
-    response = client.get(f"/nodes/{default(UUID)}")
+    response = client.nodes(default(UUID))
     assert response.status_code == 404
     assert response.json() == ERROR_404
 
-    response = client.get(f"/nodes/{default(UUID)}")
+    response = client.nodes(default(UUID))
     assert response.status_code == 404
     assert response.json() == ERROR_404
 
 
 def test_validation(client: Client):
-    response = client.get("abooba")
+    response = client.nodes("abooba")
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
-    response = client.get("42069")
+    response = client.nodes("42069")
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
