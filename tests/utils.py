@@ -113,9 +113,9 @@ def random_string() -> str:
 
 
 def random_su_type() -> ShopUnitType:
-    if random.randint(0, 1):
-        return ShopUnitType.OFFER
-    return ShopUnitType.CATEGORY
+    return ShopUnitType.OFFER
+    # if random.randint(0, 1):
+    # return ShopUnitType.CATEGORY
 
 
 factories = {
