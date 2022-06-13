@@ -35,6 +35,8 @@ class ShopUnit(Base):
     children: List[ShopUnit] = relationship("ShopUnit")  # type: ignore
 
     name: str = Column(String)  # type: ignore
+    date: datetime = Column(DateTime)  # type: ignore
+
     type: ShopUnitType = Column(Enum(ShopUnitType))  # type: ignore
     price: int = Column(Integer, nullable=True)  # type: ignore
-    date: datetime = Column(DateTime)  # type: ignore
+    sub_offers_count: int = Column(Integer)  # type: ignore
