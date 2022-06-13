@@ -31,11 +31,9 @@ def test_validation(client: Client):
     assert response.status_code == 400
     assert response.json() == ERROR_400
 
-    # logically should not be allowed, but by the rules this is not checked,
-    # so no additional pain trying to disallow this ;)
-    # response = client.sales("42069")
-    # assert response.status_code == 400
-    # assert response.json() == ERROR_400
+    response = client.sales("42069")
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
 
 
 if __name__ == "__main__":
