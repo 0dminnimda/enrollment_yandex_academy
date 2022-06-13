@@ -1,5 +1,5 @@
 from asyncio import gather
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional
 from uuid import UUID
 
 from sqlalchemy.engine import Result
@@ -76,31 +76,31 @@ class CRUD:
 
     async def all_shop_unit_parents(
         self, db: DB, parent_id: Optional[UUID],
-        results: List[ShopUnit], ids: Set[UUID],
-        depth: int = 0
+        results: Dict[UUID, ShopUnit], depth: int = 0
     ) -> None:
 
         if parent_id is None:
             return None
 
-        if parent_id in ids:
+        if parent_id in results:
             return None
-        ids.add(parent_id)
+        # XXX: early key claiming, so others would not try making a db query
+        results[parent_id] = None  # type: ignore
 
         it = await self.shop_unit_parent(db, parent_id, depth)
-        results.append(it)
-        await self.all_shop_unit_parents(db, it.parentId, results, ids, depth)
+        results[parent_id] = it
+
+        await self.all_shop_unit_parents(db, it.parentId, results, depth)
 
     async def all_shop_units_parents(
-        self, db: DB, parent_ids: Iterable[Optional[UUID]], depth: int = 0
-    ) -> Tuple[List[ShopUnit], Set[UUID]]:
+        self, db: DB, parent_ids: Iterable[Optional[UUID]],
+        results: Dict[UUID, ShopUnit], depth: int = 0
+    ) -> Dict[UUID, ShopUnit]:
 
-        results: List[ShopUnit] = []
-        ids: Set[UUID] = set()
-        tasks = [self.all_shop_unit_parents(db, id, results, ids, depth)
+        tasks = [self.all_shop_unit_parents(db, id, results, depth)
                  for id in parent_ids]
         await gather(*tasks)
-        return results, ids
+        return results
 
     async def update_shop_units(
         self, db: DB, units: Iterable[ShopUnit]
