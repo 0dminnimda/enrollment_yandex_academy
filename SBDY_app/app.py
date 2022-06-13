@@ -10,8 +10,7 @@ from .datebase import db_injection, db_shutdown, db_startup
 from .docs import info, paths
 from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .models import ShopUnit as DBShopUnit
-from .schemas import (Error, Import, ImpRequest, ShopUnit, ShopUnitType,
-                      StatResponse)
+from .schemas import Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse
 from .typedefs import DB, AnyCallable
 
 
@@ -135,11 +134,22 @@ async def delete(id: UUID) -> str:
     return "Not implemented yet"
 
 
+def sum_to_mean(unit: DBShopUnit) -> None:
+    # usually if price is None, unit is an empty category, so whatever
+    if unit.price is not None and unit.sub_offers_count != 0:
+        unit.price = ceil(unit.price / unit.sub_offers_count)
+
+    for unit in unit.children:
+        sum_to_mean(unit)
+
+
 @path_with_docs(app.get, "/nodes/{id}", response_model=ShopUnit)
 async def nodes(id: UUID, db: DB = db_injection):
     unit = await crud.shop_unit(db, id)
     if unit is None:
         raise ItemNotFound
+
+    sum_to_mean(unit)
     return unit
 
 
