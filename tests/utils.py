@@ -6,7 +6,7 @@ import random
 import string
 from datetime import datetime
 from pathlib import Path
-from typing import List, Type, TypeVar, _GenericAlias  # type: ignore
+from typing import Any, Optional, Type, _GenericAlias  # type: ignore
 from uuid import UUID, uuid4
 
 import pytest
@@ -21,6 +21,30 @@ def setup():
 
 
 ### pytest ###
+
+
+class Client(TestClient):
+    def imports(self, data: str):
+        return self.post("/imports", data=data)
+
+    def delete(self, id: Any):
+        return super().delete(f"/delete/{id}")
+
+    def nodes(self, id: Any):
+        return self.get(f"/nodes/{id}")
+
+    def sales(self, date: datetime):
+        return self.get("/sales", params={"date": date})  # type: ignore
+
+    def stats(self, id: Any, dateStart: Optional[datetime] = None,
+              dateEnd: Optional[datetime] = None):
+        params = {}
+        if dateStart is not None:
+            params["dateStart"] = dateStart
+        if dateEnd is not None:
+            params["dateEnd"] = dateEnd
+        return self.get(f"/node/{id}/statistic", params=params)
+
 
 @pytest.fixture
 def client() -> TestClient:
