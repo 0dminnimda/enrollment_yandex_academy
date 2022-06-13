@@ -3,6 +3,6 @@ fastapi==0.78.0
 uvicorn[standard]==0.17.6
 pyyaml==5.4.1
 ciso8601==2.2.0
-sqlalchemy==1.4.34
+sqlalchemy==1.4.35
 sqlalchemy-utils==0.38.2
 aiosqlite==0.17.0
