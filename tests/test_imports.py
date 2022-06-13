@@ -79,8 +79,24 @@ def test_valid_category_price(client: Client):
 
 
 def test_invalid_category_price(client: Client):
-    imp = default(Import)
+    imp = default(Import, parentId=None)
     imp.type = ShopUnitType.CATEGORY
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
+def test_valid_offer_price(client: Client):
+    imp = default(Import, parentId=None, type=ShopUnitType.OFFER)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+
+def test_invalid_offer_price(client: Client):
+    imp = default(Import, parentId=None, type=ShopUnitType.OFFER)
+    imp.price = None
     data = default(ImpRequest, items=[imp])
     response = client.imports(data.json())
     assert response.status_code == 400
@@ -95,6 +111,20 @@ def test_type_change(client: Client):
     assert response.status_code == 200
 
     imp.type = ShopUnitType.OFFER
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
+def test_child_of_offer(client: Client):
+    imp = default(Import, parentId=None,
+                  type=ShopUnitType.OFFER)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    imp = default(Import, parentId=imp.id)
     data = default(ImpRequest, items=[imp])
     response = client.imports(data.json())
     assert response.status_code == 400
