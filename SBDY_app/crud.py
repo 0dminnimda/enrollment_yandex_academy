@@ -78,7 +78,7 @@ class CRUD:
         await self.shop_unit_parents(db, it.parentId, results, ids, depth)
 
     async def shop_units_parents(
-        self, db: DB, *parent_ids: Optional[UUID], depth: int = 0
+        self, db: DB, parent_ids: Iterable[Optional[UUID]], depth: int = 0
     ) -> Tuple[List[ShopUnit], Set[UUID]]:
 
         results: List[ShopUnit] = []
