@@ -7,7 +7,7 @@ Database models
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
@@ -23,19 +23,20 @@ Base: DeclarativeMeta = declarative_base()
 
 
 class Depth(Base):
-    __tablename__ = 'depth'
+    __tablename__ = "depth"
 
     id: int = Column(Integer, primary_key=True)  # type: ignore
     depth: int = Column(Integer)  # type: ignore
 
 
 class ShopUnit(Base):
-    __tablename__ = 'shop'
+    __tablename__ = "shop"
 
     id: UUID = Column(UUIDType(), primary_key=True)  # type: ignore
     parentId: Optional[UUID] = Column(  # type: ignore
-        UUIDType(), ForeignKey('shop.id'), nullable=True)
-    children: List[ShopUnit] = relationship("ShopUnit")  # type: ignore
+        UUIDType(), ForeignKey("shop.id", ondelete="CASCADE"), nullable=True)
+    children: List[ShopUnit] = relationship(  # type: ignore
+        "ShopUnit", cascade="all, delete, delete-orphan", passive_deletes=True)
 
     name: str = Column(String)  # type: ignore
     date: datetime = Column(DateTime)  # type: ignore
