@@ -1,3 +1,4 @@
+from copy import copy
 from datetime import datetime
 from math import ceil
 from typing import Any, Dict, List, Optional
@@ -170,23 +171,26 @@ async def delete(id: UUID) -> str:
     return "Not implemented yet"
 
 
-def sum_to_mean(unit: DBShopUnit) -> None:
+def shop_unit_to_schema(unit: DBShopUnit) -> ShopUnit:
+    # takes price and devices it be number of sub offers
+    result = ShopUnit(**{
+        **unit.__dict__,
+        "children": [shop_unit_to_schema(unit) for unit in unit.children]
+    })
+
     # usually if price is None, unit is an empty category, so whatever
     if unit.price is not None and unit.sub_offers_count != 0:
-        unit.price = ceil(unit.price / unit.sub_offers_count)
+        result.price = ceil(unit.price / unit.sub_offers_count)
 
-    for unit in unit.children:
-        sum_to_mean(unit)
+    return result
 
 
 @path_with_docs(app.get, "/nodes/{id}", response_model=ShopUnit)
-async def nodes(id: UUID, db: DB = db_injection):
+async def nodes(id: UUID, db: DB = db_injection) -> ShopUnit:
     unit = await crud.shop_unit(db, id)
     if unit is None:
         raise ItemNotFound
-
-    sum_to_mean(unit)
-    return unit
+    return shop_unit_to_schema(unit)
 
 
 @path_with_docs(app.get, "/sales", response_model=StatResponse)
