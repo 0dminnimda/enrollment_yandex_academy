@@ -4,6 +4,7 @@ and also enables debugging if this file is run as the main
 """
 
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 import uvicorn
@@ -17,13 +18,23 @@ DEBUGGING = "debugpy" in sys.modules
 
 def run(host: str = "localhost") -> None:
     file = Path(__file__)
+
+    config: dict = uvicorn.config.LOGGING_CONFIG  # type: ignore
+    my_config: dict = deepcopy(config)
+    default: dict = config["handlers"]["default"]
+    del default["stream"]
+    default["filename"] = str(file.parent / "logfile.log")
+    default["class"] = "logging.FileHandler"
+
     uvicorn.run(
         f"{file.stem}:app",
+        app_dir=str(file.parent.absolute()),
         host=host,
         port=80,
         reload=options.RELOAD,
         log_level="info",
-        app_dir=str(file.parent.absolute())
+        log_config=my_config if options.DEV_MODE else config,
+        use_colors=options.DEV_MODE,
     )
 
 
