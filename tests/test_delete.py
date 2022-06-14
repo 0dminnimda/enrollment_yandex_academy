@@ -1,4 +1,5 @@
 from uuid import UUID
+from SBDY_app.schemas import ImpRequest, Import, ShopUnitType
 
 from utils import ERROR_400, ERROR_404, Client, client, default, do_test, setup
 
@@ -7,18 +8,45 @@ setup()
 
 def test_delete(client: Client):
     id = default(UUID)
-    # TODO: adding the unit with id to the db
+    data = default(ImpRequest, items=[default(Import, id=id, parentId=None)])
+    response = client.imports(data.json())
+    assert response.status_code == 200
 
     response = client.delete(id)
     assert response.status_code == 200
 
-    # TODO: check that the unit is deleted
+    response = client.nodes(id)
+    assert response.status_code == 404
+    assert response.json() == ERROR_404
 
     response = client.delete(id)
     assert response.status_code == 404
     assert response.json() == ERROR_404
 
-    # TODO: check that the unit is still deleted
+    response = client.nodes(id)
+    assert response.status_code == 404
+    assert response.json() == ERROR_404
+
+
+def test_delete_hierarchy(client: Client):
+    id1, id2 = default(UUID), default(UUID)
+    items = [
+        default(Import, id=id1, parentId=None,
+                type=ShopUnitType.CATEGORY, price=None),
+        default(Import, id=id2, parentId=id1)]
+    data = default(ImpRequest, items=items)
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    response = client.delete(id1)
+    assert response.status_code == 200
+
+    response = client.nodes(id1)
+    assert response.status_code == 404
+    assert response.json() == ERROR_404
+    response = client.nodes(id2)
+    assert response.status_code == 404
+    assert response.json() == ERROR_404
 
 
 def test_nonexisting_items(client: Client):
