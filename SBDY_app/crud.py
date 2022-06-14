@@ -30,7 +30,7 @@ class CRUD:
 
     # we need that depth because of async recursive DBShopUnit
     # SEE: github.com/sqlalchemy/sqlalchemy/issues/8126
-    async def startup(self, db: DB, depth: int = 20000) -> None:
+    async def startup(self, db: DB, depth: int = 200) -> None:
         q = await db.execute(select(Depth))
         db_depth = q.scalars().one_or_none()
 
@@ -113,6 +113,10 @@ class CRUD:
         result = await gather(*tasks)
         await db.flush()
         return result  # type: ignore
+
+    async def delete_shop_unit(self, db: DB, id: UUID) -> None:
+        await db.delete(await self.shop_unit(db, id))
+        await db.flush()
 
 
 crud = CRUD()
