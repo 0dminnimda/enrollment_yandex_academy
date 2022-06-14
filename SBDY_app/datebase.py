@@ -33,11 +33,15 @@ async def get_db() -> AsyncGenerator[DB, None]:
 db_injection = Depends(get_db)
 
 
-async def db_startup() -> None:
+async def init_db() -> None:
     async with engine.begin() as conn:
         if options.DEV_MODE:
             await conn.run_sync(Base.metadata.drop_all)  # type: ignore
         await conn.run_sync(Base.metadata.create_all)  # type: ignore
+
+
+async def db_startup() -> None:
+    await init_db()
 
     async for db in get_db():
         await crud.startup(db)
