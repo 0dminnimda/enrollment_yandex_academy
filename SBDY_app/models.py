@@ -36,7 +36,7 @@ class ShopUnit(Base):
     parentId: Optional[UUID] = Column(  # type: ignore
         UUIDType(), ForeignKey("shop.id", ondelete="CASCADE"), nullable=True)
     children: List[ShopUnit] = relationship(  # type: ignore
-        "ShopUnit", cascade="all, delete, delete-orphan", passive_deletes=True)
+        "ShopUnit", cascade="all, delete", passive_deletes=True)
 
     name: str = Column(String)  # type: ignore
     date: datetime = Column(DateTime)  # type: ignore
