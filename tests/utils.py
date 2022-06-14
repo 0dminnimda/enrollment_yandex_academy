@@ -2,22 +2,25 @@
 Things that simplify the testing process and help with it
 """
 
+from __future__ import annotations
+
 import random
 import string
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Type, _GenericAlias  # type: ignore
+from typing import Any, Generator, Optional, Type, _GenericAlias  # type: ignore
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from SBDY_app import app
+from SBDY_app import app, options
 from SBDY_app.schemas import Error, ShopUnitType
 from SBDY_app.typedefs import T
 
 
 def setup():
     random.seed(69)
+    options.DEV_MODE = True
 
 
 ### pytest ###
@@ -48,10 +51,14 @@ class Client(TestClient):
             params["dateEnd"] = dateEnd
         return self.get(f"/node/{id}/statistic", params=params)
 
+    def __enter__(self) -> Client:
+        return super().__enter__()  # type: ignore
+
 
 @pytest.fixture
-def client() -> Client:
-    return Client(app)
+def client() -> Generator[Client, None, None]:
+    with Client(app) as client:
+        yield client
 
 
 def do_test(file: str) -> None:
