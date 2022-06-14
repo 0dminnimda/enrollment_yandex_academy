@@ -168,7 +168,10 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
 
 @path_with_docs(app.delete, "/delete/{id}")
 async def delete(id: UUID, db: DB = db_injection) -> str:
-    await crud.delete_shop_unit(db, id)
+    unit = await crud.shop_unit(db, id)
+    if unit is None:
+        raise ItemNotFound
+    await crud.delete_shop_unit(db, unit)
     return "Successful deletion"
 
 

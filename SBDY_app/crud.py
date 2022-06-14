@@ -114,8 +114,8 @@ class CRUD:
         await db.flush()
         return result  # type: ignore
 
-    async def delete_shop_unit(self, db: DB, id: UUID) -> None:
-        await db.delete(await self.shop_unit(db, id))
+    async def delete_shop_unit(self, db: DB, unit: ShopUnit) -> None:
+        await db.delete(unit)
         await db.flush()
 
 
