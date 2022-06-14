@@ -28,7 +28,9 @@ class CRUD:
         self.depth = depth
         self.selection = stack_selectinload(depth)
 
-    async def startup(self, db: DB, depth: int = 150) -> None:
+    # we need that depth because of async recursive DBShopUnit
+    # SEE: github.com/sqlalchemy/sqlalchemy/issues/8126
+    async def startup(self, db: DB, depth: int = 20000) -> None:
         q = await db.execute(select(Depth))
         db_depth = q.scalars().one_or_none()
 

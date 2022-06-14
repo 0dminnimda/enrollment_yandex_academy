@@ -17,6 +17,8 @@ from sqlalchemy_utils import UUIDType
 from .schemas import ShopUnitType
 
 
+# for future: github.com/tiangolo/sqlmodel
+# may be a better way to handle typechecking + reuse code
 Base: DeclarativeMeta = declarative_base()
 
 
