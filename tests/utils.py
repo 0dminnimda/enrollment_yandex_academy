@@ -25,7 +25,6 @@ def setup():
 
 ### pytest ###
 
-
 class Client(TestClient):
     def imports(self, data: str):
         return self.post("/imports", data=data)
