@@ -167,8 +167,9 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
 
 
 @path_with_docs(app.delete, "/delete/{id}")
-async def delete(id: UUID) -> str:
-    return "Not implemented yet"
+async def delete(id: UUID, db: DB = db_injection) -> str:
+    await crud.delete_shop_unit(db, id)
+    return "Successful deletion"
 
 
 def shop_unit_to_schema(unit: DBShopUnit) -> ShopUnit:
