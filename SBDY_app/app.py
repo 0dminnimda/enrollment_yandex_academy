@@ -1,6 +1,6 @@
 from datetime import datetime
 from math import ceil
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import FastAPI
@@ -10,8 +10,8 @@ from .datebase import db_injection, db_shutdown, db_startup
 from .docs import info, paths
 from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .models import ShopUnit as DBShopUnit
-from .schemas import Error, ImpRequest, ShopUnit, ShopUnitType, StatResponse
-from .typedefs import DB, AnyCallable
+from .schemas import Error, ImpRequest, Import, ShopUnit, ShopUnitType, StatResponse
+from .typedefs import DB, T, AnyCallable
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
@@ -48,7 +48,8 @@ async def shutdown():
 
 
 def update_parents(parents: Dict[UUID, DBShopUnit],
-                   parent_id: Optional[UUID], diff: int) -> None:
+                   parent_id: Optional[UUID],
+                   diff: int, count: int = 0) -> None:
     if parent_id is None:
         return
 
@@ -56,9 +57,15 @@ def update_parents(parents: Dict[UUID, DBShopUnit],
     if parent.price is None:
         parent.price = 0
     parent.price += diff
-    parent.sub_offers_count += 1
+    parent.sub_offers_count += count
 
-    update_parents(parents, parent.parentId, diff)
+    update_parents(parents, parent.parentId, diff, count)
+
+
+def setattrs(o: T, attrs: Dict[str, Any]) -> T:
+    for name, value in attrs.items():
+        setattr(o, name, value)
+    return o
 
 
 @path_with_docs(app.post, "/imports")
@@ -66,35 +73,106 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     kw = dict(date=req.updateDate, sub_offers_count=0)
     items = {imp.id: imp for imp in req.items}
 
+    # add existing units
     # validate type (no changes allowed)
-    db_units = await crud.shop_units(db, list(items.keys()))
-    for unit in db_units:
+    units: Dict[UUID, DBShopUnit] = {}
+    for unit in await crud.shop_units(db, list(items.keys())):
         if items[unit.id].type != unit.type:
             raise ValidationFailed
+        units[unit.id] = unit
 
-    # validate parent type (can only be a category)
-    # add parents from req
-    ids_of_parents_in_db: List[UUID] = []
+    parent_ids = {u.parentId for u in units.values() if u.parentId}
+    parent_ids |= {i.parentId for i in items.values() if i.parentId}
+
+    # add existing parents
     parents: Dict[UUID, DBShopUnit] = {}
-    for imp in req.items:
-        if imp.parentId is None:
-            continue
+    for parent in await crud.shop_units(db, list(parent_ids)):
+        parents[parent.id] = parent
 
-        parent = items.get(imp.parentId, None)
-        if parent is None:
-            ids_of_parents_in_db.append(imp.parentId)
-        elif parent.type != ShopUnitType.CATEGORY:
+    # add parents from req
+    for id in parent_ids:
+        parent = parents.get(id, None)  # type: ignore
+        imp_parent = items.get(id, None)  # type: ignore
+
+        if parent is not None and imp_parent is not None:
+            # change in db
+            parents[id] = setattrs(parent, imp_parent.dict(exclude={"price"}))
+        elif parent is None and imp_parent is not None:
+            # new
+            parents[id] = DBShopUnit(**kw, **imp_parent.dict())
+        elif parent is None and imp_parent is None:
+            # non-existent
             raise ValidationFailed
         else:
-            parents[parent.id] = DBShopUnit(**kw, **parent.dict())
+            # exists in db
+            pass
 
     # validate parent type (can only be a category)
-    # add first parents from db
-    for parent_id in ids_of_parents_in_db:
-        parent = await crud.shop_unit_parent(db, parent_id)
+    for parent in parents.values():
         if parent.type != ShopUnitType.CATEGORY:
             raise ValidationFailed
-        parents[parent.id] = parent
+
+    # ids_of_parents_in_db: List[UUID] = []
+    # for imp in items.values():
+    #     if imp.parentId is None:
+    #         continue
+
+    #     req_parent = items.get(imp.parentId, None)
+    #     if req_parent is None:
+    #         ids_of_parents_in_db.append(imp.parentId)
+    #     else:
+    #         parents[req_parent.id] = DBShopUnit(**kw, **req_parent.dict())
+
+    # # validate parent type inside of req (can only be a category)
+    # ids_of_parents_in_db: List[UUID] = []
+    # validated_parents: Dict[UUID, Import] = {}
+    # for imp in items.values():
+    #     if imp.parentId is None:
+    #         continue
+
+    #     req_parent = items.get(imp.parentId, None)
+    #     if req_parent is None:
+    #         ids_of_parents_in_db.append(imp.parentId)
+    #     elif req_parent.type != ShopUnitType.CATEGORY:
+    #         raise ValidationFailed
+    #     else:
+    #         validated_parents[req_parent.id] = req_parent
+
+    # parents: Dict[UUID, DBShopUnit] = {}
+
+    # # add validated parents
+    # for id, req_parent in validated_parents.items():
+    #     parent = units.get(id, None)
+    #     if parent is None:
+    #         parent = await crud.shop_unit_parent(db, id)
+    #     parents[id] = parent
+
+    # # add parents from req
+    # ids_of_parents_in_db: List[UUID] = []
+    # parents: Dict[UUID, DBShopUnit] = {}
+    # for imp in items.values():
+    #     if imp.parentId is None:
+    #         continue
+
+    #     parent = items.get(imp.parentId, None)
+    #     if parent is None:
+    #         ids_of_parents_in_db.append(imp.parentId)
+    #     elif parent.type != ShopUnitType.CATEGORY:
+    #         raise ValidationFailed
+    #     elif parent.id in units:
+    #         db_parent = units[parent.id]
+    #         parents[parent.id] = db_parent
+    #         if db_parent.parentId
+    #     else:
+    #         parents[parent.id] = DBShopUnit(**kw, **parent.dict())
+
+    # # validate parent type (can only be a category)
+    # # add first parents from db
+    # for parent_id in ids_of_parents_in_db:
+    #     parent = await crud.shop_unit_parent(db, parent_id)
+    #     if parent.type != ShopUnitType.CATEGORY:
+    #         raise ValidationFailed
+    #     parents[parent.id] = parent
 
     # add all remaining parents higher up in the hierarchy
     await crud.all_shop_units_parents(
@@ -104,27 +182,65 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     for parent in parents.values():
         parent.date = req.updateDate
 
-    # update parents of existing units
-    for unit in db_units:
-        imp = items[unit.id]
-        if unit.type == ShopUnitType.OFFER:
-            assert imp.price is not None
-            assert unit.price is not None
-            update_parents(parents, unit.parentId, imp.price - unit.price)
+    # # update parents of existing offers
+    # offers: Dict[UUID, Import] = {}
+    # for id, unit in units.items():
+    #     imp = items[id]
+    #     if unit.type == ShopUnitType.OFFER:
+    #         assert imp.price is not None
+    #         assert unit.price is not None
+    #         update_parents(parents, unit.parentId, imp.price - unit.price)
+    #         offers[id] = imp
 
-    # update parents of new units
-    for id in items.keys() - set(u.id for u in db_units):
-        imp = items[id]
-        if imp.type == ShopUnitType.OFFER:
-            assert imp.price is not None
-            update_parents(parents, imp.parentId, imp.price)
+    # # update parents of new offers
+    # for id in items.keys() - units.keys():
+    #     imp = items[id]
+    #     if imp.type == ShopUnitType.OFFER:
+    #         assert imp.price is not None
+    #         update_parents(parents, imp.parentId, imp.price)
+    #         offers[id] = imp
 
+    offers: Dict[UUID, Import] = {id: imp for id, imp in items.items()
+                                  if imp.type == ShopUnitType.OFFER}
+
+    # update parents of offers
+    for id, imp in offers.items():
+        assert imp.price is not None
+
+        unit = units.get(id, None)  # type: ignore
+        if unit is None:
+            update_parents(parents, imp.parentId, imp.price, count=1)
+            continue
+        assert unit.price is not None
+
+        if unit.parentId == imp.parentId:
+            update_parents(parents, imp.parentId, imp.price - unit.price)
+        else:
+            update_parents(parents, imp.parentId, imp.price, count=1)
+            update_parents(parents, unit.parentId, -unit.price, count=-1)
+
+    # update parents
     await crud.update_shop_units(db, parents.values())
 
-    # create new units
-    new_units = items.keys() - parents.keys()
-    db_units = await crud.update_shop_units(
-        db, (DBShopUnit(**kw, **items[id].dict()) for id in new_units))
+    # update offers
+    await crud.update_shop_units(
+        db, (DBShopUnit(**kw, **imp.dict()) for imp in offers.values()))
+
+    # update the rest of the categories
+    categories: List[DBShopUnit] = []
+    for id in items.keys() - parents.keys() - offers.keys():
+        imp = items[id]
+        assert imp.type == ShopUnitType.CATEGORY
+
+        unit = parents.get(id, None)  # type: ignore
+        if unit is None:
+            categories.append(DBShopUnit(**kw, **imp.dict()))
+            continue
+
+        categories.append(setattrs(unit, imp.dict(exclude={"price"})))
+
+    # update categories
+    await crud.update_shop_units(db, categories)
 
     return "Successful import"
 
