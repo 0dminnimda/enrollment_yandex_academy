@@ -131,6 +131,13 @@ def test_child_of_offer(client: Client):
     assert response.json() == ERROR_400
 
 
+def test_nonexisting_parent(client: Client):
+    data = default(ImpRequest, items=[default(Import)])
+    response = client.imports(data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
 def test_not_required_Import_fields(client: Client):
     string = default(ImpRequest).json(exclude={"items": {0: {"parentId"}}})
     response = client.imports(string)
