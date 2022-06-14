@@ -70,6 +70,15 @@ Click on the button "Try it out", it allows you to fill the parameters and direc
 
 ![screenshot](docs/webdoc_run.png)
 
+## Testing
+
+Clone the [repository from the GitHub](https://github.com/0dminnimda/enrollment_yandex_academy)  
+Open a terminal in the root of the repository and run the commands
+```console
+$ python -m pip install .[test]
+$ python -m pytest
+```
+
 ## The choice of tools
 
 ### Web framework
