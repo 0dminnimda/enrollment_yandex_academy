@@ -59,6 +59,17 @@ $ python -m SBDY_app -h
 
 to see what arguments `run`/CLI takes
 
+## REST API documentation
+
+Run the app and then go to `http://<host>/docs` or `http://<host>/redoc`  
+to see and play with an interactive documentation page (both are diffetren)
+
+![screenshot](docs/webdoc.png)
+
+Click on the button "Try it out", it allows you to fill the parameters and directly interact with the API
+
+![screenshot](docs/webdoc_run.png)
+
 ## The choice of tools
 
 ### Web framework
