@@ -160,3 +160,7 @@ tests/my_secrets.py
 
 # Datebase
 SBDY_app/sqlite.db
+
+# Profiling
+profile.pstats
+profile.gv
