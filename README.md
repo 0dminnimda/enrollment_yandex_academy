@@ -108,3 +108,27 @@ It seems to be the most popular library for yaml parsing in python, and I don't 
 Also I needed to restrictively parse the ISO 8601 formatted strings.  
 I could not use [`pydantic`](https://pydantic-docs.helpmanual.io/)s `datetime` validator because it allows too much.  
 I settled down on [`ciso8601`](https://github.com/closeio/ciso8601), it's fast and strict.
+
+## Profiling
+
+Open a terminal in the root of the repository and run the commands
+
+```console
+$ python -m cProfile -o profile.pstats SBDY_app/__main__.py
+```
+
+to generate a profiling output and run (`gprof2dot` requeued)
+
+```console
+$ python -m gprof2dot -f pstats profile.pstats > profile.gv
+```
+
+to generate a dot file that visualizes the profiling output
+
+or (`snakeviz` requeued)
+
+```console
+$ python -m snakeviz profile.pstats
+```
+
+to dynamically look through the table of the profiling results
