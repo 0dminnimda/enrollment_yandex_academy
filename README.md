@@ -125,6 +125,8 @@ $ python -m gprof2dot -f pstats profile.pstats > profile.gv
 
 to generate a dot file that visualizes the profiling output
 
+![gprof2dot](docs/profiling_gprof2dot.png)
+
 or (`snakeviz` requeued)
 
 ```console
@@ -132,3 +134,5 @@ $ python -m snakeviz profile.pstats
 ```
 
 to dynamically look through the table of the profiling results
+
+![gprof2dot](docs/profiling_snakeviz.png)
