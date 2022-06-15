@@ -65,6 +65,7 @@ class Client(TestClient):
 
 @pytest.fixture
 def client() -> Generator[Client, None, None]:
+    options.DEV_MODE = True
     with Client(app) as client:
         yield client
 
