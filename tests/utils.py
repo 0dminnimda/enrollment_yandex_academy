@@ -25,6 +25,46 @@ def setup():
     options.DEV_MODE = True
 
 
+### Link to the server deployed in the container ###
+
+container_link_raw = "https://{nickname}.usr.yandex-academy.ru"
+_secrets = Path(__file__).parent / "my_secrets.py"
+_template = Path(__file__).parent / "my_secrets.py_template"
+
+
+def container_link() -> str:
+    _secrets_rel = _secrets.relative_to(Path.cwd())
+    _template_rel = _template.relative_to(Path.cwd())
+
+    if not _secrets.exists():
+        _secrets.touch()
+        print(
+            "\n"
+            f"⚠ File '{_secrets_rel}' didn't exist, but I created it for you\n"
+            f"⚠ Fill it out like in '{_template_rel}':\n"
+            "\n"
+            f"{_template.read_text()}"
+        )
+        raise FileNotFoundError(f"File '{_secrets}' didn't exist")
+
+    args: dict = {}
+    exec(_secrets.read_text(), args)
+
+    if "nickname" not in args:
+        print(
+            "\n"
+            f"⚠ File '{_secrets_rel}' isn't filled out correctly\n"
+            f"⚠ Fill it out like in '{_template_rel}':\n"
+            "\n"
+            f"{_template.read_text()}"
+        )
+        raise NameError(
+            f"Name 'nickname' is not found in '{_secrets_rel}',"
+            " it's required by 'container_link'")
+
+    return container_link_raw.format(**args)
+
+
 ### pytest ###
 
 class Client(TestClient):
@@ -72,46 +112,6 @@ def client() -> Generator[Client, None, None]:
 
 def do_test(file: str) -> None:
     pytest.main([file, "-W", "ignore::pytest.PytestAssertRewriteWarning"])
-
-
-### Link to the server deployed in the container ###
-
-container_link_raw = "https://{nickname}.usr.yandex-academy.ru/"
-_secrets = Path(__file__).parent / "my_secrets.py"
-_template = Path(__file__).parent / "my_secrets.py_template"
-
-
-def container_link() -> str:
-    _secrets_rel = _secrets.relative_to(Path.cwd())
-    _template_rel = _template.relative_to(Path.cwd())
-
-    if not _secrets.exists():
-        _secrets.touch()
-        print(
-            "\n"
-            f"⚠ File '{_secrets_rel}' didn't exist, but I created it for you\n"
-            f"⚠ Fill it out like in '{_template_rel}':\n"
-            "\n"
-            f"{_template.read_text()}"
-        )
-        raise FileNotFoundError(f"File '{_secrets}' didn't exist")
-
-    args: dict = {}
-    exec(_secrets.read_text(), args)
-
-    if "nickname" not in args:
-        print(
-            "\n"
-            f"⚠ File '{_secrets_rel}' isn't filled out correctly\n"
-            f"⚠ Fill it out like in '{_template_rel}':\n"
-            "\n"
-            f"{_template.read_text()}"
-        )
-        raise NameError(
-            f"Name 'nickname' is not found in '{_secrets_rel}',"
-            " it's required by 'container_link'")
-
-    return container_link_raw.format(**args)
 
 
 ### json ###
