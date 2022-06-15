@@ -1,4 +1,5 @@
 from asyncio import gather
+from datetime import datetime
 from typing import Dict, Iterable, List, Optional
 from uuid import UUID
 
@@ -9,6 +10,7 @@ from sqlalchemy.orm.strategy_options import Load
 from sqlalchemy.sql import Select
 
 from .models import Depth, ShopUnit
+from .schemas import ShopUnitType
 from .typedefs import DB
 
 
@@ -20,6 +22,7 @@ def stack_selectinload(depth: int) -> Load:
     return stack_selectinload(depth - 1).selectinload(ShopUnit.children)
 
 
+# XXX: extract selection to separate class
 class CRUD:
     depth: int
     selectinload: Load
@@ -66,6 +69,27 @@ class CRUD:
         q = await db.execute(self.select_shop_units(ids, depth))
         return q.scalars().all()
 
+    def select_shop_units_by_date(self, start: datetime, end: datetime,
+                                  with_end: bool, depth: int) -> Select:
+        s = self.select_all_shop_units(depth).filter(start <= ShopUnit.date)
+        if with_end:
+            return s.filter(ShopUnit.date <= end)
+        return s.filter(ShopUnit.date < end)
+
+    def select_offers_by_date(self, start: datetime, end: datetime,
+                              with_end: bool, depth: int) -> Select:
+        return (self.select_shop_units_by_date(start, end, with_end, depth)
+                .filter(ShopUnit.type == ShopUnitType.OFFER))
+
+    async def offers_by_date(
+        self, db: DB, start: datetime, end: datetime,
+        with_end: bool = True, depth: int = 0
+    ) -> List[ShopUnit]:
+
+        q = await db.execute(self.select_offers_by_date(
+            start, end, with_end, depth))
+        return q.scalars().all()
+
     async def shop_unit_parent(self, db: DB, parent_id: UUID,
                                depth: int = 0) -> ShopUnit:
         q = await db.execute(self.select_shop_unit(parent_id, depth))
@@ -76,6 +100,7 @@ class CRUD:
         tasks = [self.shop_unit_parent(db, id, depth) for id in parent_ids]
         return await gather(*tasks)  # type: ignore
 
+    # XXX: having parent backref + selectinload probably is better idea
     async def all_shop_unit_parents(
         self, db: DB, parent_id: Optional[UUID],
         results: Dict[UUID, ShopUnit], depth: int = 0
