@@ -169,6 +169,11 @@ async def delete(id: UUID, db: DB = db_injection) -> str:
     if unit is None:
         raise ItemNotFound
     await crud.delete_shop_unit(db, unit)
+
+    parents: Dict[UUID, DBShopUnit] = {}
+    await crud.all_shop_unit_parents(db, unit.parentId, parents)
+    update_parents(parents, unit.parentId, -unit.price, count=-1)
+
     return "Successful deletion"
 
 
