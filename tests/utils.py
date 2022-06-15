@@ -8,12 +8,14 @@ import random
 import string
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Generator, Optional, Type, _GenericAlias  # type: ignore
+from typing import (Any, Generator, Optional, Type,
+                    _GenericAlias)  # type: ignore
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 from SBDY_app import app, options
+from SBDY_app.patches import serialize_datetime
 from SBDY_app.schemas import Error, ShopUnitType
 from SBDY_app.typedefs import T
 
@@ -36,13 +38,20 @@ class Client(TestClient):
         return self.get(f"/nodes/{id}")
 
     def sales(self, date: Any = None):
+        if isinstance(date, datetime):
+            date = serialize_datetime(date)
+
         params = {}
         if date is not None:
             params["date"] = date
         return self.get("/sales", params=params)
 
-    def stats(self, id: Any, dateStart: Optional[datetime] = None,
-              dateEnd: Optional[datetime] = None):
+    def stats(self, id: Any, dateStart: Any = None, dateEnd: Any = None):
+        if isinstance(dateStart, datetime):
+            dateStart = serialize_datetime(dateStart)
+        if isinstance(dateEnd, datetime):
+            dateEnd = serialize_datetime(dateEnd)
+
         params = {}
         if dateStart is not None:
             params["dateStart"] = dateStart
