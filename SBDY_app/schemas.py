@@ -64,16 +64,18 @@ class ShopUnit(BaseInfo):
     children: Optional[List[ShopUnit]] = None
 
     @root_validator
-    def ensure_right_children(cls, values):
-        children = values.get("children", None)
-        if children is None:
-            return values
-
-        if values["type"] == ShopUnitType.OFFER:
+    def ensure_children_and_price(cls, values):
+        tp = values.get("type", None)
+        if tp == ShopUnitType.OFFER:
             values["children"] = None
+        elif tp == ShopUnitType.CATEGORY:
+            children = values.get("children", [])
+            # sanity check because in db it's stored as a list
+            assert isinstance(children, list)
 
-        # sanity check because in db it's stored as a list
-        assert isinstance(children, list)
+            if len(children) == 0:
+                values["price"] = None
+
         return values
 
     class Config:
