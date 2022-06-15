@@ -181,7 +181,7 @@ async def delete(id: UUID, db: DB = db_injection) -> str:
 
 
 def shop_unit_to_schema(unit: DBShopUnit) -> ShopUnit:
-    # takes price and devices it be number of sub offers
+    # takes price and devices it by the number of sub offers
     result = ShopUnit(**{
         **unit.__dict__,
         "children": [shop_unit_to_schema(unit) for unit in unit.children]
@@ -207,7 +207,7 @@ async def sales(date: datetime) -> StatResponse:
 
 
 @path_with_docs(app.get, "/node/{id}/statistic", response_model=StatResponse)
-async def node_statistic(id: UUID,
-                         dateStart: datetime = datetime.min,
-                         dateEnd: datetime = datetime.max) -> StatResponse:
+async def statistic(id: UUID,
+                    dateStart: datetime = datetime.min,
+                    dateEnd: datetime = datetime.max) -> StatResponse:
     return StatResponse(items=[])
