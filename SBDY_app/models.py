@@ -42,5 +42,5 @@ class ShopUnit(Base):
     date: datetime = Column(DateTime)  # type: ignore
 
     type: ShopUnitType = Column(Enum(ShopUnitType))  # type: ignore
-    price: Optional[int] = Column(Integer, nullable=True)  # type: ignore
+    price: int = Column(Integer)  # type: ignore
     sub_offers_count: int = Column(Integer)  # type: ignore
