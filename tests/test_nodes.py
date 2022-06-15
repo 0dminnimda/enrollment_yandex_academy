@@ -82,6 +82,43 @@ def test_full_category(client: Client):
     assert response.json() == model
 
 
+def test_nested(client: Client):
+    ids: list = []
+    for _ in range(75):
+        while 1:
+            id = default(UUID)
+            if id not in ids:
+                ids.append(id)
+                break
+
+    children = None
+    data = default(ImpRequest, items=[])
+    date = serialize_datetime(data.updateDate)
+
+    for id, parent_id in zip(ids, ids[1:] + [None]):
+        tp = ShopUnitType.CATEGORY if children else ShopUnitType.OFFER
+        price = None if children else 69
+        imp = default(Import, id=id, parentId=parent_id, type=tp, price=price)
+        imp.price = price
+        children = [{**json.loads(imp.json()), "price": 69,
+                     "date": date, "children": children}]
+        data.items.append(imp)
+    assert isinstance(children, list)
+
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    response = client.nodes(ids[-1])
+    assert response.status_code == 200
+    ShopUnit(**response.json())  # no ValidationError
+    assert response.json() == children[0]
+
+    response = client.nodes(ids[-1])
+    assert response.status_code == 200
+    ShopUnit(**response.json())  # no ValidationError
+    assert response.json() == children[0]
+
+
 def test_nonexisting_items(client: Client):
     response = client.nodes(default(UUID))
     assert response.status_code == 404
