@@ -1,5 +1,5 @@
 from copy import copy
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import ceil
 from typing import Any, Dict, List, Optional
 from uuid import UUID
@@ -11,8 +11,9 @@ from .datebase import db_injection, db_shutdown, db_startup
 from .docs import info, paths
 from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .models import ShopUnit as DBShopUnit
-from .schemas import Error, ImpRequest, Import, ShopUnit, ShopUnitType, StatResponse
-from .typedefs import DB, T, AnyCallable
+from .schemas import (Error, Import, ImpRequest, ShopUnit, ShopUnitType,
+                      StatResponse)
+from .typedefs import DB, AnyCallable, T
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
@@ -181,7 +182,11 @@ async def delete(id: UUID, db: DB = db_injection) -> str:
 
 
 def shop_unit_to_schema(unit: DBShopUnit) -> ShopUnit:
-    # takes price and devices it by the number of sub offers
+    """
+    Takes price and devices it by the number of sub offers,
+    then puts it into instance of ShopUnit
+    """
+
     result = ShopUnit(**{
         **unit.__dict__,
         "children": [shop_unit_to_schema(unit) for unit in unit.children]
@@ -202,8 +207,9 @@ async def nodes(id: UUID, db: DB = db_injection) -> ShopUnit:
 
 
 @path_with_docs(app.get, "/sales", response_model=StatResponse)
-async def sales(date: datetime) -> StatResponse:
-    return StatResponse(items=[])
+async def sales(date: datetime, db: DB = db_injection) -> StatResponse:
+    units = await crud.offers_by_date(db, date - timedelta(days=1), date)
+    return StatResponse(items=units)
 
 
 @path_with_docs(app.get, "/node/{id}/statistic", response_model=StatResponse)
