@@ -93,7 +93,11 @@ class Import(BaseInfo):
         tp = values.get("type", None)
         if tp == ShopUnitType.CATEGORY:
             if values.get("price", None) is not None:
+                # only for import
                 raise ValueError("'price' of the categories should be null")
+            else:
+                # but make it int for db
+                values["price"] = 0
         elif tp == ShopUnitType.OFFER:
             if values.get("price", None) is None:
                 raise ValueError("'price' of the offer should not be null")
