@@ -55,8 +55,6 @@ def update_parents(parents: Dict[UUID, DBShopUnit],
         return
 
     parent = parents[parent_id]
-    if parent.price is None:
-        parent.price = 0
     parent.price += diff
     parent.sub_offers_count += count
 
@@ -132,7 +130,6 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
         if unit is None:
             update_parents(parents, imp.parentId, imp.price, count=1)
             continue
-        assert unit.price is not None
 
         if unit.parentId == imp.parentId:
             update_parents(parents, imp.parentId, imp.price - unit.price)
@@ -182,8 +179,7 @@ def shop_unit_to_schema(unit: DBShopUnit) -> ShopUnit:
         "children": [shop_unit_to_schema(unit) for unit in unit.children]
     })
 
-    # usually if price is None, unit is an empty category, so whatever
-    if unit.price is not None and unit.sub_offers_count != 0:
+    if unit.sub_offers_count != 0:
         result.price = ceil(unit.price / unit.sub_offers_count)
 
     return result
