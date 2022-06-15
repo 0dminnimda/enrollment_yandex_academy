@@ -1,6 +1,9 @@
+import json
+from math import ceil
 from uuid import UUID
 
-from SBDY_app.schemas import Import, ImpRequest, ShopUnitType
+from SBDY_app.schemas import Import, ImpRequest, ShopUnit, ShopUnitType
+from SBDY_app.patches import serialize_datetime
 
 from utils import ERROR_400, Client, client, default, do_test, setup
 
@@ -12,13 +15,15 @@ def test_different_amounts_of_items(client: Client):
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    # TODO: check that unit appeared in the db and is same
-
     data = default(ImpRequest, items=[default(Import, parentId=None)])
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    # TODO: check that unit appeared in the db and is same
+    response = client.nodes(data.items[0].id)
+    assert response.status_code == 200
+    assert response.json() == {
+        **json.loads(data.items[0].json()),
+        "date": serialize_datetime(data.updateDate), "children": None}
 
     data = default(
         ImpRequest,
@@ -27,25 +32,55 @@ def test_different_amounts_of_items(client: Client):
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    # TODO: check that unit appeared in the db and is same
+    response = client.nodes(data.items[0].id)
+    assert response.status_code == 200
+    assert response.json() == {
+        **json.loads(data.items[0].json()),
+        "date": serialize_datetime(data.updateDate), "children": None}
+
+    response = client.nodes(data.items[1].id)
+    assert response.status_code == 200
+    assert response.json() == {
+        **json.loads(data.items[1].json()),
+        "date": serialize_datetime(data.updateDate), "children": None}
 
 
 def test_category_price(client: Client):
-    id = default(UUID)
-    # TODO: adding the category without children with id to the db
-    # TODO: price of the category with id == None
-
-    data = default(ImpRequest, items=[default(Import, parentId=id, price=420)])
+    id1 = default(UUID)
+    data = default(ImpRequest, items=[
+        default(Import, id=id1, parentId=None,
+                price=None, type=ShopUnitType.CATEGORY)])
+    data.items[0].price = None
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    # TODO: price of the category with id == 420
-
-    data = default(ImpRequest, items=[default(Import, parentId=id, price=69)])
+    data = default(ImpRequest, items=[
+                   default(Import, parentId=id1, price=420)])
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    # TODO: price of the category with id == (420 + 69) / 2
+    response = client.nodes(id1)
+    assert response.status_code == 200
+    assert ShopUnit(**response.json()).price == 420
+
+    id2 = default(UUID)
+    data = default(ImpRequest, items=[default(
+        Import, id=id2, parentId=id1, price=69)])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    response = client.nodes(id1)
+    assert response.status_code == 200
+    assert ShopUnit(**response.json()).price == ceil((420 + 69) / 2)
+
+    data = default(ImpRequest, items=[default(
+        Import, id=id2, parentId=None, price=69)])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    response = client.nodes(id1)
+    assert response.status_code == 200
+    assert ShopUnit(**response.json()).price == 420
 
 
 def test_not_unique_ids(client: Client):
@@ -66,6 +101,7 @@ def test_not_unique_ids(client: Client):
 def test_valid_category_price(client: Client):
     imp = default(Import, parentId=None,
                   type=ShopUnitType.CATEGORY, price=None)
+    imp.price = None
     data = default(ImpRequest, items=[imp])
     response = client.imports(data.json())
     assert response.status_code == 200
@@ -106,6 +142,7 @@ def test_invalid_offer_price(client: Client):
 def test_type_change(client: Client):
     imp = default(Import, parentId=None,
                   type=ShopUnitType.CATEGORY, price=None)
+    imp.price = None
     data = default(ImpRequest, items=[imp])
     response = client.imports(data.json())
     assert response.status_code == 200
@@ -143,13 +180,10 @@ def test_not_required_Import_fields(client: Client):
     response = client.imports(string)
     assert response.status_code == 200
 
-    # TODO: check that unit appeared in the db and is same
-
-    string = default(ImpRequest).json(exclude={"items": {0: {"price"}}})
-    response = client.imports(string)
+    data = default(ImpRequest, items=[
+        default(Import, parentId=None, type=ShopUnitType.CATEGORY, price=None)])
+    response = client.imports(data.json(exclude={"items": {0: {"price"}}}))
     assert response.status_code == 200
-
-    # TODO: check that unit appeared in the db and is same
 
 
 def test_ImpRequest_validation(client: Client):
