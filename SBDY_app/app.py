@@ -77,6 +77,7 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     units: Dict[UUID, DBShopUnit] = {}
     for unit in await crud.shop_units(db, list(items.keys())):
         if items[unit.id].type != unit.type:
+            print("type change")
             raise ValidationFailed
         units[unit.id] = unit
 
@@ -101,6 +102,7 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
             parents[id] = DBShopUnit(**kw, **imp_parent.dict())
         elif parent is None and imp_parent is None:
             # non-existent
+            print("non-existent", id)
             raise ValidationFailed
         else:
             # exists in db
@@ -109,6 +111,7 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     # validate parent type (can only be a category)
     for parent in parents.values():
         if parent.type != ShopUnitType.CATEGORY:
+            print("not a CATEGORY")
             raise ValidationFailed
 
     # add all remaining parents higher up in the hierarchy
