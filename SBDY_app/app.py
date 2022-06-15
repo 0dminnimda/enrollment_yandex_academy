@@ -203,11 +203,11 @@ async def nodes(id: UUID, db: DB = db_injection) -> ShopUnit:
 
 @path_with_docs(app.get, "/sales", response_model=StatResponse)
 async def sales(date: datetime) -> StatResponse:
-    return "Not implemented yet"
+    return StatResponse(items=[])
 
 
 @path_with_docs(app.get, "/node/{id}/statistic", response_model=StatResponse)
 async def node_statistic(id: UUID,
                          dateStart: datetime = datetime.min,
                          dateEnd: datetime = datetime.max) -> StatResponse:
-    return "Not implemented yet"
+    return StatResponse(items=[])
