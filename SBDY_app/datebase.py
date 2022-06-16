@@ -39,14 +39,8 @@ async def db_startup() -> None:
             await conn.run_sync(Base.metadata.drop_all)  # type: ignore
         await conn.run_sync(Base.metadata.create_all)  # type: ignore
 
-    async for db in get_db():
-        await crud.startup(db)
-
 
 async def db_shutdown() -> None:
-    async for db in get_db():
-        await crud.shutdown(db)
-
     if options.DEV_MODE:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)  # type: ignore
