@@ -2,11 +2,10 @@ import json
 from math import ceil
 from uuid import UUID
 
-from SBDY_app import app, options
 from SBDY_app.patches import serialize_datetime
 from SBDY_app.schemas import Import, ImpRequest, ShopUnit, ShopUnitType
 
-from utils import ERROR_400, ERROR_404, Client, client, default, do_test, setup
+from utils import ERROR_400, Client, client, default, do_test, setup
 
 setup()
 
@@ -186,38 +185,6 @@ def test_not_required_Import_fields(client: Client):
                 type=ShopUnitType.CATEGORY, price=None)])
     response = client.imports(data.json(exclude={"items": {0: {"price"}}}))
     assert response.status_code == 200
-
-
-def test_persistency():
-    id = default(UUID)
-    data = default(ImpRequest, items=[default(Import, id=id, parentId=None)])
-    model = {**json.loads(data.items[0].json()),
-             "date": serialize_datetime(data.updateDate), "children": None}
-
-    options.DEV_MODE = True
-    with Client(app) as client:
-        response = client.imports(data.json())
-        assert response.status_code == 200
-
-    options.DEV_MODE = True
-    with Client(app) as client:
-        response = client.nodes(id)
-        assert response.status_code == 404
-        assert response.json() == ERROR_404
-
-    options.DEV_MODE = False
-    with Client(app) as client:
-        response = client.imports(data.json())
-        assert response.status_code == 200
-
-    options.DEV_MODE = False
-    with Client(app) as client:
-        response = client.nodes(id)
-        assert response.status_code == 200
-        ShopUnit(**response.json())  # no ValidationError
-        assert response.json() == model
-
-    options.DEV_MODE = True
 
 
 def test_ImpRequest_validation(client: Client):
