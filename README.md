@@ -117,7 +117,7 @@ Open a terminal in the root of the repository and run the commands
 $ python -m cProfile -o profile.pstats SBDY_app/__main__.py
 ```
 
-to generate a profiling output and run (`gprof2dot` requeued)
+to generate a profiling output and run ([`gprof2dot`](https://github.com/jrfonseca/gprof2dot) requeued)
 
 ```console
 $ python -m gprof2dot -f pstats profile.pstats > profile.gv
@@ -127,7 +127,7 @@ to generate a dot file that visualizes the profiling output
 
 ![gprof2dot](docs/profiling_gprof2dot.png)
 
-or (`snakeviz` requeued)
+or ([`snakeviz`](https://jiffyclub.github.io/snakeviz/) requeued)
 
 ```console
 $ python -m snakeviz profile.pstats
