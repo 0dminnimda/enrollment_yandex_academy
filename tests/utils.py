@@ -8,12 +8,14 @@ import random
 import string
 from datetime import datetime
 from pathlib import Path
-from typing import (Any, Generator, Optional, Type,
-                    _GenericAlias)  # type: ignore
+from typing import _GenericAlias  # type: ignore
+from typing import Any, Generator, Optional, Type
+from urllib.parse import urljoin
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from requests import Session
 from SBDY_app import app, options
 from SBDY_app.patches import serialize_datetime
 from SBDY_app.schemas import Error, ShopUnitType
@@ -67,15 +69,30 @@ def container_link() -> str:
 
 ### pytest ###
 
-class Client(TestClient):
+LOCAL = True
+PROFILE = False
+
+
+class Client:
+    client: Session
+
+    def __init__(self, client: Session, base_url: str):
+        def request(method, url, *args, **kwargs):  # type: ignore
+            url = urljoin(base_url, url)
+            return Session.request(client, method, url, *args, **kwargs)
+
+        client.request = request  # type: ignore
+        client.base_url = base_url  # type: ignore
+        self.client = client
+
     def imports(self, data: str):
-        return self.post("/imports", data=data)
+        return self.client.post("/imports", data=data)
 
     def delete(self, id: Any):
-        return super().delete(f"/delete/{id}")
+        return self.client.delete(f"/delete/{id}")
 
     def nodes(self, id: Any):
-        return self.get(f"/nodes/{id}")
+        return self.client.get(f"/nodes/{id}")
 
     def sales(self, date: Any = None):
         if isinstance(date, datetime):
@@ -84,7 +101,7 @@ class Client(TestClient):
         params = {}
         if date is not None:
             params["date"] = date
-        return self.get("/sales", params=params)
+        return self.client.get("/sales", params=params)
 
     def stats(self, id: Any, dateStart: Any = None, dateEnd: Any = None):
         if isinstance(dateStart, datetime):
@@ -97,16 +114,35 @@ class Client(TestClient):
             params["dateStart"] = dateStart
         if dateEnd is not None:
             params["dateEnd"] = dateEnd
-        return self.get(f"/node/{id}/statistic", params=params)
+        return self.client.get(f"/node/{id}/statistic", params=params)
 
     def __enter__(self) -> Client:
-        return super().__enter__()  # type: ignore
+        self.client.__enter__()
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:
+        self.client.__exit__(*args, **kwargs)
+
+
+def generate_client() -> Client:
+    if LOCAL:
+        if PROFILE:
+            base_url = "http://localhost:80"
+            cl = Session()
+        else:
+            base_url = "http://testserver"
+            cl = TestClient(app)
+    else:
+        base_url = container_link()
+        cl = Session()
+
+    return Client(cl, base_url)
 
 
 @pytest.fixture
 def client() -> Generator[Client, None, None]:
     options.DEV_MODE = True
-    with Client(app) as client:
+    with generate_client() as client:
         yield client
 
 
