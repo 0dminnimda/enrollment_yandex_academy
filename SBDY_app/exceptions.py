@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import InvalidRequestError
 
 from .schemas import Error
 
@@ -32,3 +33,9 @@ async def handler_404(request: Request, exc: Exception) -> Response:
 def add_exception_handlers(app: FastAPI) -> None:
     app.exception_handler(RequestValidationError)(handler_400)
     app.exception_handler(ItemNotFound)(handler_404)
+
+
+class NotEnoughResultsFound(InvalidRequestError):
+    """
+    A database result was required to be specific length but was not.
+    """
