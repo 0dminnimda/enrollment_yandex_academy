@@ -185,6 +185,7 @@ async def update_shop_units(
 ) -> List[ShopUnit]:
 
     # is make_transient_to_detached useful?
+    # also see bulk-operations in sqlalchemy docs
     tasks = [db.merge(unit) for unit in units]
     result = await gather(*tasks)
     await db.flush()
