@@ -48,9 +48,9 @@ class Querier:
     @classmethod
     def shop_units(cls, ids: Optional[List[UUID]]) -> Select:
         sel = select(ShopUnit)
-        if sel is not None:
-            return sel.filter(ShopUnit.id.in_(ids))  # type: ignore
-        return sel
+        if ids is None:
+            return sel
+        return sel.filter(ShopUnit.id.in_(ids))  # type: ignore
 
     @classmethod
     def shop_units_by_date(cls, start: datetime, end: datetime,
