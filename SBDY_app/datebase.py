@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from . import options
-from .crud import crud
 from .models import Base
 from .typedefs import DB
 
