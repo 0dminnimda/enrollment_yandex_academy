@@ -47,8 +47,6 @@ def test_persistency():
 
 
 def test_nested(client: Client):
-    # last = time.perf_counter()
-    # times = []
     ids: list = []
     for _ in range(75):
         while 1:
@@ -71,36 +69,20 @@ def test_nested(client: Client):
         data.items.append(imp)
     assert isinstance(children, list)
 
-    # times.append(time.perf_counter() - last)
-    # last = time.perf_counter()
-
     response = client.imports(data.json())
     assert response.status_code == 200
-
-    # times.append(time.perf_counter() - last)
-    # last = time.perf_counter()
 
     response = client.nodes(ids[-1])
     assert response.status_code == 200
     ShopUnit(**response.json())  # no ValidationError
     assert response.json() == children[0]
 
-    # times.append(time.perf_counter() - last)
-    # last = time.perf_counter()
-
     response = client.delete(ids[-1])
     assert response.status_code == 200
-
-    # times.append(time.perf_counter() - last)
-    # last = time.perf_counter()
 
     response = client.nodes(ids[-1])
     assert response.status_code == 404
     assert response.json() == ERROR_404
-
-    # times.append(time.perf_counter() - last)
-    # print(times)
-    # assert False
 
 
 if __name__ == "__main__":
