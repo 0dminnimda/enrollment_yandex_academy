@@ -17,9 +17,6 @@ DEBUGGING = "debugpy" in sys.modules
 
 
 def run(host: str = "localhost") -> None:
-    # from SBDY_app import options
-    # print("run", __name__, options.DEV_MODE)
-
     file = Path(__file__)
     logfile = file.parent / "logfile.log"
     logfile.open(mode="a", encoding="utf-8").write("\n")
