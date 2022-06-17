@@ -1,6 +1,6 @@
 from asyncio import gather
 from datetime import datetime
-from typing import Dict, Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 from uuid import UUID
 
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
@@ -70,19 +70,21 @@ class Querier:
 ### helpers ###
 
 def assemble_shop_units(in_units: List[ShopUnit]) -> List[ShopUnit]:
-    units: Dict[UUID, ShopUnit] = {}
+    units: Dict[UUID, Tuple[ShopUnit, List[ShopUnit]]] = {}
     for unit in in_units:
-        set_committed_value(unit, "children", [])
-        units[unit.id] = unit
+        units[unit.id] = unit, []
 
     top_ids: Set[UUID] = set(units.keys())
-    for unit in units.values():
+    for unit, _ in units.values():
         parent = units.get(unit.parentId, None)  # type: ignore
         if parent is not None:
             top_ids.remove(unit.id)
-            parent.children.append(unit)
+            parent[1].append(unit)
 
-    return [units[id] for id in top_ids]
+    for unit, children in units.values():
+        set_committed_value(unit, "children", children)
+
+    return [units[id][0] for id in top_ids]
 
 
 def one(units: List[ShopUnit]) -> ShopUnit:
