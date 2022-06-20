@@ -6,8 +6,8 @@ The application is launched on the ASGI server, the data correctness is ensured 
 This application is annotated and written with in the async paradigm.  
 Upon the initialization app grabs docs from the `openapi.yaml` and uses them to construct the web docs  
 
-In short, the application receives a request, validates its data, computes the result, likely using the database and sends it back.
-For more details on how Fastapi works you can read its docs.
+In short, the application receives a request, validates its data, computes the result, likely using the database and sends it back.  
+For more details on how Fastapi works you can read its docs.  
 
 ## Files
 
