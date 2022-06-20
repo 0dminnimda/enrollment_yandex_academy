@@ -83,14 +83,7 @@ Click on the button "Try it out", it allows you to fill the parameters and direc
 
 ## Testing
 
-All tests are located in the folder [`tests`](tests)
-
-To run the tests clone the [repository from the GitHub](https://github.com/0dminnimda/enrollment_yandex_academy)  
-Open a terminal in the root of the repository and run the commands
-```console
-$ python -m pip install .[test]
-$ python -m pytest
-```
+Visit the folder [`tests`](tests) or specifically [`tests/README.md`](tests/README.md) for documentation
 
 ## The choice of tools
 
@@ -123,6 +116,8 @@ I could not use [`pydantic`](https://pydantic-docs.helpmanual.io/)s `datetime` v
 I settled down on [`ciso8601`](https://github.com/closeio/ciso8601), it's fast and strict.
 
 ## Profiling
+
+> Also see the folder [`tests`](tests) or specifically [`tests/README.md`](tests/README.md) for documentation on how to run app appropriately for profiling
 
 Open a terminal in the root of the repository and run the commands
 
