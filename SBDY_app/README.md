@@ -11,7 +11,7 @@ For more details on how Fastapi works you can read its docs.
 
 - [`app.py`](app.py) - App initialization and path/route handlers
 - [`crud.py`](crud.py) - Database interface for our models (CreateReadUpdateDelete)
-- [`datebase.py`](datebase.py) - Database initialization and other things that help db work
+- [`database.py`](database.py) - Database initialization and other things that help db work
 - [`docs.py`](docs.py) - Pulls out the documentation from YAML and saves it in a useful way
 - [`exceptions.py`](exceptions.py) - Custom exceptions and exception handlers
 - [`logfile.log`](logfile.log) - Gitignored, but if the app gets run, used for the logging

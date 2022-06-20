@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import FastAPI
 
 from . import crud
-from .datebase import db_injection, db_shutdown, db_startup
+from .database import db_injection, db_shutdown, db_startup
 from .docs import info, paths
 from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .models import ShopUnit as DBShopUnit

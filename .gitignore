@@ -158,7 +158,7 @@ cython_debug/
 # Secret
 tests/my_secrets.py
 
-# Datebase
+# Database
 SBDY_app/sqlite.db
 
 # Profiling
