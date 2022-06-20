@@ -59,6 +59,13 @@ $ python -m SBDY_app -h
 
 to see what arguments `run`/CLI takes
 
+## Known issues
+
+From the fact that the async feature of sqlchemy is relatively new, and not so battle tested, there is a problem associated with quriyng a recursive structure.
+Two options were presented to me: quick, but not completely working quriyng and completely working, but slow quriyng, here I chose the first options.
+And I also could not make it to work perfectly because of my exams, so I ask you to forgive me, please 🙏
+In addition, I would be very grateful if you would check out the branch `working_but_slow` (I hope I used the correct commit) and, perhaps, run it through your tests too. Also look into [crud.py](SBDY_app/crud.py).
+
 ## REST API documentation
 
 Run the app and then go to `http://<host>/docs` or `http://<host>/redoc`  
