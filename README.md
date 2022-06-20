@@ -83,7 +83,9 @@ Click on the button "Try it out", it allows you to fill the parameters and direc
 
 ## Testing
 
-Clone the [repository from the GitHub](https://github.com/0dminnimda/enrollment_yandex_academy)  
+All tests are located in the folder [`tests`](tests)
+
+To run the tests clone the [repository from the GitHub](https://github.com/0dminnimda/enrollment_yandex_academy)  
 Open a terminal in the root of the repository and run the commands
 ```console
 $ python -m pip install .[test]
