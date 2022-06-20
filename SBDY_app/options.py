@@ -1,5 +1,5 @@
 """
-Application-wide settings and options
+Changeable application-wide settings and options
 """
 
 # by default we don't reload, normal production mode
