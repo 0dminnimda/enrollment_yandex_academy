@@ -17,6 +17,7 @@ For more details on how Fastapi works you can read its docs.
 - [`docs.py`](docs.py) - Pulls out the documentation from YAML and saves it in a useful way
 - [`exceptions.py`](exceptions.py) - Custom exceptions and exception handlers
 - [`logfile.log`](logfile.log) - Gitignored, but if the app gets run, used for the logging
+- [`logger.py`](logger.py) - Setup and things needed for logging
 - [`models.py`](models.py) - Database models
 - [`openapi.yaml`](openapi.yaml) - YAML documentation used to generate web docs
 - [`options.py`](options.py) - Changeable application-wide settings and options
