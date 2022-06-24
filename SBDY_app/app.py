@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from math import ceil
 from typing import Any, Dict, Optional
@@ -5,6 +6,7 @@ from uuid import UUID
 
 from fastapi import FastAPI
 
+from . import __name__ as mod_name
 from . import crud, models
 from .database import db_injection, db_shutdown, db_startup
 from .docs import info, paths
@@ -12,6 +14,9 @@ from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .schemas import (Error, Import, ImpRequest, ShopUnit, ShopUnitType,
                       StatResponse)
 from .typedefs import DB, AnyCallable, ShopUnits, T
+
+
+logger = logging.getLogger(mod_name)
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
@@ -74,7 +79,8 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     # validate type (no changes allowed)
     for id, unit in units.items():
         if items[unit.id].type != unit.type:
-            print("type change")
+            logger.error(f"Type change of {unit.id}:"
+                         f" {items[unit.id].type} != {unit.type}")
             raise ValidationFailed
 
     possible_parent_ids = {u.parentId for u in units.values() if u.parentId}
@@ -96,7 +102,7 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
             parents[id] = crud.create_shop_unit(db, **kw, **imp_parent.dict())
         elif parent is None and imp_parent is None:
             # non-existent
-            print("non-existent", id)
+            logger.error(f"Non-existent {id}")
             raise ValidationFailed
         else:
             # present in db, no change
@@ -106,7 +112,8 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     # and update parents's date
     for parent in parents.values():
         if parent.type != ShopUnitType.CATEGORY:
-            print("not a CATEGORY")
+            logger.error(f"Parent {parent.id} is not a category:"
+                         f" {parent.type} != {ShopUnitType.CATEGORY}")
             raise ValidationFailed
         parent.date = req.updateDate
 
