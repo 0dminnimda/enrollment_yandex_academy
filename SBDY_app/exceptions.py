@@ -28,15 +28,18 @@ response_404 = JSONResponse(status_code=404, content=jsonable_encoder(
     Error(code=404, message="Item not found")))
 
 
+def log_handler(request: Request, exc: Exception) -> None:
+    logger.error(f"Error handler: request={vars(request)}")
+    logger.error(f"Error handler: exception={exc!r} | {vars(exc)}")
+
+
 async def handler_400(request: Request, exc: Exception) -> Response:
-    logger.error(f"Error handler: {request!r} {vars(request)}")
-    logger.error(f"Error handler: {exc!r}")
+    log_handler(request, exc)
     return response_400
 
 
 async def handler_404(request: Request, exc: Exception) -> Response:
-    logger.error(f"Error handler: {request!r} {vars(request)}")
-    logger.error(f"Error handler: {exc!r}")
+    log_handler(request, exc)
     return response_404
 
 
