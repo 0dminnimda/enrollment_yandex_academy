@@ -7,4 +7,7 @@ from .patches import patch
 patch()  # order is important
 
 from .app import app
+from . import logger
 from .run import run
+
+logger.setup(__name__)
