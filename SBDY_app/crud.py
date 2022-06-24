@@ -53,60 +53,6 @@ class Query:
 
 ### helpers ###
 
-# def assemble_shop_units(in_units: List[ShopUnit]) -> ShopUnits:
-#     units: Dict[UUID, Tuple[ShopUnit, List[ShopUnit]]] = {}
-#     for unit in in_units:
-#         if unit.id in units:
-#             raise MultipleResultsFound(
-#                 "Multiple rows were found when one or none was required")
-#         units[unit.id] = unit, []
-
-#     # top_ids: Set[UUID] = set(units.keys())
-#     for unit, _ in units.values():
-#         parent = units.get(unit.parentId, None)  # type: ignore
-#         if parent is not None:
-#             # top_ids.remove(unit.id)
-#             parent[1].append(unit)
-
-#     for unit, children in units.values():
-#         unit.children = children
-#         # set_committed_value(unit, "children", children)
-
-#     return {id: unit for id, (unit, _) in units.items()}
-
-
-# def preprocess_shop_units(fetched: List[ShopUnit]) -> ShopUnits:
-#     units: ShopUnits = {}
-#     for unit in fetched:
-#         if unit.id in units:
-#             raise MultipleResultsFound(
-#                 "Multiple rows were found when one or none was required")
-#         unit.children = []
-#         units[unit.id] = unit
-#     return units
-
-
-# def assemble_shop_units(new_units: ShopUnits,
-#                         old_units: ShopUnits) -> ShopUnits:
-#     old_ids: Set[UUID] = set(old_units.keys())
-#     new_ids: Set[UUID] = set(new_units.keys())
-
-#     for id in old_ids | new_ids:
-#         unit = old_units[id]
-#         old_units[unit.id].children.remove(unit)
-#     # if len(old_ids | new_ids) != 0:
-#     #     raise ValueError("Newly fetched units were found in the 'old_units'")
-
-#     for id in old_ids:
-
-#     for unit in units.values():
-#         parent = units.get(unit.parentId, None)  # type: ignore
-#         if parent is not None:
-#             parent[1].append(unit)
-
-#     return units
-
-
 def assemble_shop_units(fetched: List[ShopUnit], *,
                         add_children: bool) -> ShopUnits:
     units: ShopUnits = {}
