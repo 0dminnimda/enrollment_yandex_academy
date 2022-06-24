@@ -21,4 +21,10 @@ _access["class"] = "logging.FileHandler"
 
 
 def setup(name: str):
-    CONFIG["loggers"][name] = {"level": "INFO"}
+    handler = CONFIG["handlers"][name] = UVICORN_CONFIG["handlers"][name] = {}
+    handler["formatter"] = "default"
+    handler["filename"] = str(LOGFILE)
+    handler["class"] = "logging.FileHandler"
+
+    CONFIG["loggers"][name] = UVICORN_CONFIG["loggers"][name] = {
+        "handlers": [name], "level": "INFO"}
