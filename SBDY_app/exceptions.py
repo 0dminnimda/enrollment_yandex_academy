@@ -1,10 +1,16 @@
+import logging
+
 from fastapi import FastAPI, Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import InvalidRequestError
 
+from . import __name__ as mod_name
 from .schemas import Error
+
+
+logger = logging.getLogger(mod_name)
 
 
 class ItemNotFound(Exception):
@@ -23,10 +29,14 @@ response_404 = JSONResponse(status_code=404, content=jsonable_encoder(
 
 
 async def handler_400(request: Request, exc: Exception) -> Response:
+    logger.error("Error handler: " + repr(request))
+    logger.error("Error handler: " + repr(exc))
     return response_400
 
 
 async def handler_404(request: Request, exc: Exception) -> Response:
+    logger.error("Error handler: " + repr(request))
+    logger.error("Error handler: " + repr(exc))
     return response_404
 
 
