@@ -29,14 +29,14 @@ response_404 = JSONResponse(status_code=404, content=jsonable_encoder(
 
 
 async def handler_400(request: Request, exc: Exception) -> Response:
-    logger.error("Error handler: " + repr(request))
-    logger.error("Error handler: " + repr(exc))
+    logger.error(f"Error handler: {request!r} {vars(request)}")
+    logger.error(f"Error handler: {exc!r}")
     return response_400
 
 
 async def handler_404(request: Request, exc: Exception) -> Response:
-    logger.error("Error handler: " + repr(request))
-    logger.error("Error handler: " + repr(exc))
+    logger.error(f"Error handler: {request!r} {vars(request)}")
+    logger.error(f"Error handler: {exc!r}")
     return response_404
 
 
