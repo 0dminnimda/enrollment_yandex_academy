@@ -44,4 +44,4 @@ if __name__ == "__main__":
     run()
 
 # run without reloading but with stdout log
-# py -3.10 -c "from SBDY_app import run, options;options.RELOAD = False;options.DEV_MODE = True;run('0.0.0.0')"
+# py -3.10 -c "from SBDY_app import run, options;options.RELOAD = False;options.DEV_MODE = True;run('0.0.0.0')"  # noqa: E501
