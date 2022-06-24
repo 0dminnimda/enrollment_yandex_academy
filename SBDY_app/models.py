@@ -36,3 +36,14 @@ class ShopUnit(Base):
     type: ShopUnitType = Column(Enum(ShopUnitType))  # type: ignore
     price: int = Column(Integer)  # type: ignore
     sub_offers_count: int = Column(Integer)  # type: ignore
+
+    def __repr__(self) -> str:
+        names = self.__annotations__.keys()
+        kv = {}
+        for name in names:
+            try:
+                kv[name] = getattr(self, name)
+            except Exception as e:
+                kv[name] = f"[Error while getting - {e}]"
+        pairs = (f"{name}={repr(value)}" for name, value in kv.items())
+        return f"{type(self).__name__}({', '.join(pairs)})"
