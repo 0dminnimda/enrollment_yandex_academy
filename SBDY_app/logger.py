@@ -21,10 +21,17 @@ _access["class"] = "logging.FileHandler"
 
 
 def setup(name: str):
-    handler = CONFIG["handlers"][name] = UVICORN_CONFIG["handlers"][name] = {}
-    handler["formatter"] = "default"
-    handler["filename"] = str(LOGFILE)
-    handler["class"] = "logging.FileHandler"
+    CONFIG["handlers"][name] = {
+        "formatter": "default",
+        "filename": str(LOGFILE),
+        "class": "logging.FileHandler",
+    }
+
+    UVICORN_CONFIG["handlers"][name] = {
+        "formatter": "default",
+        "stream": "ext://sys.stdout",
+        "class": "logging.StreamHandler",
+    }
 
     CONFIG["loggers"][name] = UVICORN_CONFIG["loggers"][name] = {
         "handlers": [name], "level": "INFO"}
