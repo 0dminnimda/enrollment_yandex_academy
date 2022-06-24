@@ -1,3 +1,4 @@
+import logging
 from asyncio import gather
 from datetime import datetime
 from typing import Iterable, List, Optional
@@ -8,10 +9,14 @@ from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.future import select
 from sqlalchemy.sql import Select
 
+from . import __name__ as mod_name
 from .exceptions import NotEnoughResultsFound
 from .models import ShopUnit
 from .schemas import ShopUnitType
 from .typedefs import DB, ShopUnits
+
+
+logger = logging.getLogger(mod_name)
 
 
 class Query:
@@ -68,6 +73,8 @@ def assemble_shop_units(fetched: List[ShopUnit], *,
             pass
         else:
             # other unit with the same id as existing
+            logger.error(
+                f"Multiple results were found in the 'fetched': {unit}")
             raise MultipleResultsFound(
                 "Multiple rows were found when one or none was required")
 
@@ -85,6 +92,7 @@ def assemble_shop_units(fetched: List[ShopUnit], *,
 def one(units: ShopUnits, id: UUID) -> ShopUnits:
     if id in units:
         return units
+    logger.error(f"No result found: {id} not in {units}")
     raise NoResultFound(
         "No row was found when one was required")
 
@@ -97,6 +105,8 @@ def one_or_none(units: ShopUnits, id: UUID) -> Optional[ShopUnits]:
 
 def several(units: ShopUnits, ids: Iterable[UUID]) -> ShopUnits:
     # units.keys().__rsub__ will handle it all
+    logger.error(
+        f"Some ids were not found, intersection: {ids - units.keys()}")
     if len(ids - units.keys()) != 0:
         raise NotEnoughResultsFound
     return units
@@ -119,8 +129,8 @@ async def fetch_shop_units(db: DB, selection: Select, *,
         selection = Query.get_children(selection)
     if get_parents:
         selection = Query.get_parents(selection)
-    return assemble_shop_units(await fetch_all(db, selection),
-                               add_children=get_children)
+    return assemble_shop_units(
+        await fetch_all(db, selection), add_children=get_children)
 
 
 async def shop_unit(db: DB, id: UUID, *,
