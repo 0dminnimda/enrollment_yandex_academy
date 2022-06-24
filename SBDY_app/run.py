@@ -4,13 +4,13 @@ and also enables debugging if this file is run as the main
 """
 
 import sys
-from copy import deepcopy
 from pathlib import Path
 
 import uvicorn
 
 from SBDY_app import options
 from SBDY_app.app import app  # for uvicorn.run
+from SBDY_app.logger import CONFIG, LOGFILE, UVICORN_CONFIG
 
 
 DEBUGGING = "debugpy" in sys.modules
@@ -18,21 +18,7 @@ DEBUGGING = "debugpy" in sys.modules
 
 def run(host: str = "localhost") -> None:
     file = Path(__file__)
-    logfile = file.parent / "logfile.log"
-    logfile.open(mode="a", encoding="utf-8").write("\n")
-
-    config: dict = uvicorn.config.LOGGING_CONFIG  # type: ignore
-    my_config: dict = deepcopy(config)
-
-    default: dict = my_config["handlers"]["default"]
-    default.pop("stream", None)
-    default["filename"] = str(logfile)
-    default["class"] = "logging.FileHandler"
-
-    access: dict = my_config["handlers"]["access"]
-    access.pop("stream", None)
-    access["filename"] = str(logfile)
-    access["class"] = "logging.FileHandler"
+    LOGFILE.open(mode="a", encoding="utf-8").write("\n")
 
     uvicorn.run(
         f"{file.stem}:app",
@@ -41,7 +27,7 @@ def run(host: str = "localhost") -> None:
         port=80,
         reload=options.RELOAD,
         log_level="info",
-        log_config=config if options.DEV_MODE else my_config,
+        log_config=UVICORN_CONFIG if options.DEV_MODE else CONFIG,
         use_colors=options.DEV_MODE,
     )
 
