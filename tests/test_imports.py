@@ -1,10 +1,13 @@
 import json
+from datetime import datetime
 from math import ceil
+from random import shuffle
 from uuid import UUID
 
 from SBDY_app.patches import serialize_datetime
 from SBDY_app.schemas import Import, ImpRequest, ShopUnit, ShopUnitType
 
+from unit_tst import IMPORT_BATCHES, ROOT_ID
 from utils import ERROR_400, Client, client, default, do_test, setup
 
 setup()
@@ -81,6 +84,29 @@ def test_category_price(client: Client):
     response = client.nodes(id1)
     assert response.status_code == 200
     assert ShopUnit(**response.json()).price == 420
+
+
+def test_repeated_category(client: Client):
+    date = serialize_datetime(default(datetime))
+    batches = [{**batch, "updateDate": date} for batch in IMPORT_BATCHES]
+
+    for batch in batches:
+        response = client.imports(json.dumps(batch))
+        assert response.status_code == 200
+
+    response = client.nodes(ROOT_ID)
+    assert response.status_code == 200
+    result = response.json()
+
+    shuffled = batches[:]
+    shuffle(shuffled)
+    for batch in batches + shuffled:
+        response = client.imports(json.dumps(batch))
+        assert response.status_code == 200
+
+        response = client.nodes(ROOT_ID)
+        assert response.status_code == 200
+        assert response.json() == result
 
 
 def test_not_unique_ids(client: Client):
@@ -170,6 +196,37 @@ def test_child_of_offer(client: Client):
 
 def test_nonexisting_parent(client: Client):
     data = default(ImpRequest, items=[default(Import)])
+    response = client.imports(data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
+def test_change_to_nonexisting_offer_parent(client: Client):
+    imp = default(Import, parentId=None, type=ShopUnitType.OFFER)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    imp = default(Import, type=ShopUnitType.OFFER)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 400
+    assert response.json() == ERROR_400
+
+
+def test_change_to_nonexisting_category_parent(client: Client):
+    imp = default(Import, parentId=None, price=None,
+                  type=ShopUnitType.CATEGORY)
+    imp.price = None
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    imp1 = default(Import, price=None,
+                   type=ShopUnitType.CATEGORY)
+    imp1.price = None
+    imp2 = default(Import, parentId=imp1.id, type=ShopUnitType.OFFER)
+    data = default(ImpRequest, items=[imp1, imp2])
     response = client.imports(data.json())
     assert response.status_code == 400
     assert response.json() == ERROR_400
