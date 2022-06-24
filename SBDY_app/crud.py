@@ -1,64 +1,48 @@
 from asyncio import gather
 from datetime import datetime
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Iterable, List, Optional
 from uuid import UUID
 
+from sqlalchemy.engine import Result
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
-from sqlalchemy.orm.attributes import set_committed_value
-from sqlalchemy.orm.strategy_options import Load
 from sqlalchemy.sql import Select
 
 from .exceptions import NotEnoughResultsFound
 from .models import ShopUnit
 from .schemas import ShopUnitType
-from .typedefs import DB
+from .typedefs import DB, ShopUnits
 
 
-class Querier:
+class Query:
     @classmethod
-    def stack_inload(cls, depth: int) -> Load:
-        if depth == 1:
-            return selectinload(ShopUnit.children)
-        elif depth < 1:
-            raise ValueError("'depth' should be >= 1")
-        return cls.stack_inload(depth - 1).selectinload(ShopUnit.children)
-
-    @classmethod
-    def get_children(cls, sel: Select, depth: int) -> Select:
-        """
-        Recursively get children for the given selection,
-        if `depth` of the recursion is negative, then there's no limit,
-        if it's positive, then the defined depth is the max,
-        don't make it too large, it will make everything very slow
-        SEE: github.com/sqlalchemy/sqlalchemy/issues/8126
-        """
-
-        if depth == 0:
-            return sel
-        if depth > 0:
-            return sel.options(cls.stack_inload(depth))
-
-        cte = sel.cte(recursive=True)
+    def get_children(cls, selection: Select) -> Select:
+        cte = selection.cte(recursive=True)
         cte = cte.union_all(
             select(ShopUnit).filter(ShopUnit.parentId == cte.c.id))
         return select(ShopUnit).join(cte, ShopUnit.id == cte.c.id)
 
     @classmethod
+    def get_parents(cls, selection: Select) -> Select:
+        cte = selection.cte(recursive=True)
+        cte = cte.union_all(
+            select(ShopUnit).filter(ShopUnit.id == cte.c.parentId))
+        return select(ShopUnit).join(cte, ShopUnit.id == cte.c.id)
+
+    @classmethod
     def shop_units(cls, ids: Optional[List[UUID]]) -> Select:
-        sel = select(ShopUnit)
+        selection = select(ShopUnit)
         if ids is None:
-            return sel
-        return sel.filter(ShopUnit.id.in_(ids))  # type: ignore
+            return selection
+        return selection.filter(ShopUnit.id.in_(ids))  # type: ignore
 
     @classmethod
     def shop_units_by_date(cls, start: datetime, end: datetime,
                            with_end: bool) -> Select:
-        sel = cls.shop_units(None).filter(start <= ShopUnit.date)
+        selection = cls.shop_units(None).filter(start <= ShopUnit.date)
         if with_end:
-            return sel.filter(ShopUnit.date <= end)
-        return sel.filter(ShopUnit.date < end)
+            return selection.filter(ShopUnit.date <= end)
+        return selection.filter(ShopUnit.date < end)
 
     @classmethod
     def offers_by_date(cls, start: datetime, end: datetime,
@@ -69,131 +53,169 @@ class Querier:
 
 ### helpers ###
 
-def assemble_shop_units(in_units: List[ShopUnit]) -> List[ShopUnit]:
-    units: Dict[UUID, Tuple[ShopUnit, List[ShopUnit]]] = {}
-    for unit in in_units:
-        units[unit.id] = unit, []
+# def assemble_shop_units(in_units: List[ShopUnit]) -> ShopUnits:
+#     units: Dict[UUID, Tuple[ShopUnit, List[ShopUnit]]] = {}
+#     for unit in in_units:
+#         if unit.id in units:
+#             raise MultipleResultsFound(
+#                 "Multiple rows were found when one or none was required")
+#         units[unit.id] = unit, []
 
-    top_ids: Set[UUID] = set(units.keys())
-    for unit, _ in units.values():
+#     # top_ids: Set[UUID] = set(units.keys())
+#     for unit, _ in units.values():
+#         parent = units.get(unit.parentId, None)  # type: ignore
+#         if parent is not None:
+#             # top_ids.remove(unit.id)
+#             parent[1].append(unit)
+
+#     for unit, children in units.values():
+#         unit.children = children
+#         # set_committed_value(unit, "children", children)
+
+#     return {id: unit for id, (unit, _) in units.items()}
+
+
+# def preprocess_shop_units(fetched: List[ShopUnit]) -> ShopUnits:
+#     units: ShopUnits = {}
+#     for unit in fetched:
+#         if unit.id in units:
+#             raise MultipleResultsFound(
+#                 "Multiple rows were found when one or none was required")
+#         unit.children = []
+#         units[unit.id] = unit
+#     return units
+
+
+# def assemble_shop_units(new_units: ShopUnits,
+#                         old_units: ShopUnits) -> ShopUnits:
+#     old_ids: Set[UUID] = set(old_units.keys())
+#     new_ids: Set[UUID] = set(new_units.keys())
+
+#     for id in old_ids | new_ids:
+#         unit = old_units[id]
+#         old_units[unit.id].children.remove(unit)
+#     # if len(old_ids | new_ids) != 0:
+#     #     raise ValueError("Newly fetched units were found in the 'old_units'")
+
+#     for id in old_ids:
+
+#     for unit in units.values():
+#         parent = units.get(unit.parentId, None)  # type: ignore
+#         if parent is not None:
+#             parent[1].append(unit)
+
+#     return units
+
+
+def assemble_shop_units(fetched: List[ShopUnit], *,
+                        add_children: bool) -> ShopUnits:
+    units: ShopUnits = {}
+
+    for unit in fetched:
+        ex = units.get(unit.id, None)
+        if ex is None:
+            # new
+            unit.children = []
+            units[unit.id] = unit
+        elif ex is unit:
+            # duplicate of existing, not a big deal
+            pass
+        else:
+            # other unit with the same id as existing
+            raise MultipleResultsFound(
+                "Multiple rows were found when one or none was required")
+
+    if not add_children:
+        return units
+
+    for unit in units.values():
         parent = units.get(unit.parentId, None)  # type: ignore
         if parent is not None:
-            top_ids.remove(unit.id)
-            parent[1].append(unit)
+            parent.children.append(unit)
 
-    for unit, children in units.values():
-        set_committed_value(unit, "children", children)
-
-    return [units[id][0] for id in top_ids]
+    return units
 
 
-def one(units: List[ShopUnit]) -> ShopUnit:
-    if len(units) == 1:
-        return units[0]
-    if len(units) == 0:
-        raise NoResultFound(
-            "No row was found when one was required")
-    raise MultipleResultsFound(
-        "Multiple rows were found when exactly one was required")
+def one(units: ShopUnits, id: UUID) -> ShopUnits:
+    if id in units:
+        return units
+    raise NoResultFound(
+        "No row was found when one was required")
 
 
-def one_or_none(units: List[ShopUnit]) -> Optional[ShopUnit]:
-    if len(units) == 1:
-        return units[0]
-    if len(units) == 0:
-        return None
-    raise MultipleResultsFound(
-        "Multiple rows were found when exactly one or none was required")
+def one_or_none(units: ShopUnits, id: UUID) -> Optional[ShopUnits]:
+    if id in units:
+        return units
+    return None
+
+
+def several(units: ShopUnits, ids: Iterable[UUID]) -> ShopUnits:
+    # units.keys().__rsub__ will handle it all
+    if len(ids - units.keys()) != 0:
+        raise NotEnoughResultsFound
+    return units
 
 
 ### CRUD itself ###
 
-async def shop_unit(db: DB, id: UUID,
-                    depth: int = -1) -> Optional[ShopUnit]:
-    sel = Querier.shop_units([id])
-    q = await db.execute(Querier.get_children(sel, depth))
-    return one_or_none(assemble_shop_units(q.scalars().all()))
+async def fetch_all(db: DB, selection: Select) -> List[ShopUnit]:
+    result: Result = await db.execute(selection)
+    return result.scalars().all()
 
 
-async def shop_units(db: DB, ids: List[UUID],
-                     depth: int = 0) -> List[ShopUnit]:
-    sel = Querier.shop_units(ids)
-    q = await db.execute(Querier.get_children(sel, depth))
-    return assemble_shop_units(q.scalars().all())
+async def fetch_shop_units(db: DB, selection: Select, *,
+                           get_children: bool = False,
+                           get_parents: bool = False) -> ShopUnits:
+    if get_children and get_parents:
+        raise ValueError(
+            "'get_parents' and 'get_children' are mutually exclusive")
+    if get_children:
+        selection = Query.get_children(selection)
+    if get_parents:
+        selection = Query.get_parents(selection)
+    return assemble_shop_units(await fetch_all(db, selection),
+                               add_children=get_children)
 
 
-async def offers_by_date(
-    db: DB, start: datetime, end: datetime,
-    with_end: bool = True, depth: int = 0
-) -> List[ShopUnit]:
-    sel = Querier.offers_by_date(start, end, with_end)
-    q = await db.execute(Querier.get_children(sel, depth))
-    return assemble_shop_units(q.scalars().all())
+async def shop_unit(db: DB, id: UUID, *,
+                    recursive: bool = True) -> Optional[ShopUnits]:
+    selection = Query.shop_units([id])
+    units = await fetch_shop_units(db, selection, get_children=recursive)
+    return one_or_none(units, id)
 
 
-async def shop_unit_parent(db: DB, parent_id: UUID,
-                           depth: int = 0) -> ShopUnit:
-    sel = Querier.shop_units([parent_id])
-    q = await db.execute(Querier.get_children(sel, depth))
-    return one(assemble_shop_units(q.scalars().all()))
+async def shop_units(db: DB, ids: Iterable[UUID], *,
+                     recursive: bool = False) -> ShopUnits:
+    selection = Query.shop_units(list(ids))
+    return await fetch_shop_units(db, selection, get_children=recursive)
 
 
-async def shop_units_parents(db: DB, parent_ids: List[UUID],
-                             depth: int = 0) -> List[ShopUnit]:
-    sel = Querier.shop_units(parent_ids)
-    q = await db.execute(Querier.get_children(sel, depth))
-    result = assemble_shop_units(q.scalars().all())
-    if len(result) != len(parent_ids):
-        raise NotEnoughResultsFound
-    return result
-    # is this slower?
-    # tasks = [self.shop_unit_parent(db, id, depth) for id in parent_ids]
-    # return await gather(*tasks)  # type: ignore
+async def offers_by_date(db: DB, start: datetime, end: datetime, *,
+                         with_end: bool = True,
+                         recursive: bool = False) -> ShopUnits:
+    selection = Query.offers_by_date(start, end, with_end)
+    return await fetch_shop_units(db, selection, get_children=recursive)
 
 
-# XXX: having parent cte (+ backref?) is a better idea
-async def all_shop_unit_parents(
-    db: DB, parent_id: Optional[UUID],
-    results: Dict[UUID, ShopUnit], depth: int = 0
-) -> None:
-
-    if parent_id is None:
-        return None
-
-    if parent_id in results:
-        return None
-    # XXX: early key claiming, so others would not try making a db query
-    results[parent_id] = None  # type: ignore
-
-    it = await shop_unit_parent(db, parent_id, depth)
-    results[parent_id] = it
-
-    await all_shop_unit_parents(db, it.parentId, results, depth)
+async def shop_unit_parents(db: DB, parent_id: UUID) -> ShopUnits:
+    selection = Query.shop_units([parent_id])
+    units = await fetch_shop_units(db, selection, get_parents=True)
+    return one(units, parent_id)
 
 
-async def all_shop_units_parents(
-    db: DB, parent_ids: Iterable[Optional[UUID]],
-    results: Dict[UUID, ShopUnit], depth: int = 0
-) -> Dict[UUID, ShopUnit]:
+async def shop_units_parents(db: DB, parent_ids: Iterable[UUID]) -> ShopUnits:
+    selection = Query.shop_units(list(parent_ids))
+    units = await fetch_shop_units(db, selection, get_parents=True)
+    return units
 
-    tasks = [all_shop_unit_parents(db, id, results, depth)
-             for id in parent_ids]
+
+def create_shop_unit(db, /, *args, **kwargs) -> ShopUnit:
+    unit = ShopUnit(*args, **kwargs)
+    db.add(unit)
+    return unit
+
+
+async def delete_shop_units(db: DB, units: Iterable[ShopUnit]) -> None:
+    tasks = [db.delete(unit) for unit in units]
     await gather(*tasks)
-    return results
-
-
-async def update_shop_units(
-    db: DB, units: Iterable[ShopUnit]
-) -> List[ShopUnit]:
-
-    # is make_transient_to_detached useful?
-    # also see bulk-operations in sqlalchemy docs
-    tasks = [db.merge(unit) for unit in units]
-    result = await gather(*tasks)
-    await db.flush()
-    return result  # type: ignore
-
-
-async def delete_shop_unit(db: DB, unit: ShopUnit) -> None:
-    await db.delete(unit)
     await db.flush()
