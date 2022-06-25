@@ -32,10 +32,16 @@ class BaseUnit:
     price: int = Column(Integer)  # type: ignore
     sub_offers_count: int = Column(Integer)  # type: ignore
 
+    @classmethod
+    def _fields(cls) -> List[str]:
+        result = cls.__annotations__.keys()
+        if issubclass(cls, Base):
+            result |= cls._sa_class_manager.keys()  # type: ignore
+        return sorted(result)
+
     def __repr__(self) -> str:
-        names = self.__annotations__.keys()
         kv = {}
-        for name in names:
+        for name in self._fields():
             try:
                 kv[name] = getattr(self, name)
             except Exception as e:
