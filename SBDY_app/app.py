@@ -90,31 +90,6 @@ def recorded_update_unit(
     raise ValueError(f"Unknown unit type: {unit.type}")
 
 
-"""
-parent = parents.get(id, None)  # type: ignore
-if parent is None:
-    # new
-    parents[id] = crud.create_shop_unit(db, **kw, **imp.dict())
-else:
-    # change in db
-    parents[id] = setattrs(parent, imp.dict(exclude={"price"}))
-
-
-offer = units.get(id, None)  # type: ignore
-if offer is None:
-    crud.create_shop_unit(db, **kw, **imp.dict())
-else:
-    setattrs(offer, {**kw, **imp.dict()})
-
-
-unit = units.get(id, None)  # type: ignore
-if unit is None:
-    crud.create_shop_unit(db, **kw, **imp.dict())
-else:
-    setattrs(unit, imp.dict(exclude={"price"}))
-"""
-
-
 @path_with_docs(app.post, "/imports")
 async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     items = {imp.id: imp for imp in req.items}
@@ -133,24 +108,10 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
     parents = await crud.shop_units_parents(db, possible_parent_ids)
 
     # add parents from the import request
-    kw = dict(date=req.updateDate, sub_offers_count=0)
     for id in possible_parent_ids:
         parent = parents.get(id, None)  # type: ignore
         imp_parent = items.get(id, None)  # type: ignore
 
-        # if parent is not None and imp_parent is not None:
-        #     # change in db
-        #     parents[id] = setattrs(parent, imp_parent.dict(exclude={"price"}))
-        # elif parent is None and imp_parent is not None:
-        #     # new
-        #     parents[id] = crud.create_shop_unit(db, **kw, **imp_parent.dict())
-        # elif parent is None and imp_parent is None:
-        #     # non-existent
-        #     logger.error(f"Non-existent {id}")
-        #     raise ValidationFailed
-        # else:
-        #     # present in db, no change
-        #     pass
         if imp_parent is None:
             if parent is None:
                 # non-existent
@@ -162,12 +123,6 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
         else:
             parents[id] = recorded_update_unit(
                 db, req.updateDate, imp_parent, parent)
-            # if parent is None
-            #     # new
-            #     parents[id] = crud.create_shop_unit(db, **kw, **imp_parent.dict())
-            # else:
-            #     # change in db
-            #     parents[id] = setattrs(parent, imp_parent.dict(exclude={"price"}))
 
     # validate parent's type (can only be a category)
     # and update parents's date
@@ -198,24 +153,14 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
 
     # update offers
     for id, imp in offers.items():
-        offer = units.get(id, None)  # type: ignore
-        recorded_update_unit(db, req.updateDate, imp, offer)
-        # if offer is None:
-        #     crud.create_shop_unit(db, **kw, **imp.dict())
-        # else:
-        #     setattrs(offer, {**kw, **imp.dict()})
+        recorded_update_unit(db, req.updateDate, imp, units.get(id, None))
 
     # update the rest of the categories
     for id in items.keys() - parents.keys() - offers.keys():
         imp = items[id]
         assert imp.type == ShopUnitType.CATEGORY
 
-        unit = units.get(id, None)  # type: ignore
-        recorded_update_unit(db, req.updateDate, imp, unit)
-        # if unit is None:
-        #     crud.create_shop_unit(db, **kw, **imp.dict())
-        # else:
-        #     setattrs(unit, imp.dict(exclude={"price"}))
+        recorded_update_unit(db, req.updateDate, imp, units.get(id, None))
 
     return "Successful import"
 
