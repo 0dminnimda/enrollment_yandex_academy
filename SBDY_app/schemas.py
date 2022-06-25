@@ -16,7 +16,7 @@ def wrap_schema(cls: BaseModelT) -> BaseModelT:
     schema = schemas[cls.__name__]
     properties = schema["properties"]
 
-    atribures = dict(
+    attributes = dict(
         schema_extra={"example": schema.get("example", {})}
     )
 
@@ -25,7 +25,7 @@ def wrap_schema(cls: BaseModelT) -> BaseModelT:
 
     Config = cls.Config
 
-    for name, value in atribures.items():
+    for name, value in attributes.items():
         setattr(Config, name, value)
 
     for name, field in cls.__fields__.items():
