@@ -1,5 +1,6 @@
+import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, Callable
 
 from ciso8601 import parse_datetime, parse_rfc3339
 
@@ -37,6 +38,40 @@ def patch_datetime_serialization() -> None:
     ENCODERS_BY_TYPE[datetime] = serialize_datetime
 
 
+def request_response(func: Callable):
+    """
+    Takes a function or coroutine `func(request) -> response`,
+    and returns an ASGI application.
+    """
+    from starlette import routing
+    from starlette.concurrency import run_in_threadpool
+    from starlette.requests import Request
+    from starlette.types import ASGIApp, Receive, Scope, Send
+
+    from . import __name__ as mod_name
+
+    logger = logging.getLogger(mod_name)
+
+    is_coroutine = routing.iscoroutinefunction_or_partial(func)
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        request = Request(scope, receive=receive, send=send)
+        logger.info(f"{await request.body()!r} | {await request.json()}")
+        if is_coroutine:
+            response = await func(request)
+        else:
+            response = await run_in_threadpool(func, request)
+        await response(scope, receive, send)
+
+    return app
+
+
+def patch_request_response() -> None:
+    from starlette import routing
+    routing.request_response = request_response
+
+
 def patch() -> None:
     patch_datetime_validation()
     patch_datetime_serialization()
+    patch_request_response()
