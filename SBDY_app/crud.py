@@ -1,7 +1,7 @@
 import logging
 from asyncio import gather
 from datetime import datetime
-from typing import Iterable, List, Optional
+from typing import Any, Iterable, List, Optional
 from uuid import UUID
 
 from sqlalchemy.engine import Result
@@ -165,8 +165,9 @@ async def shop_units_parents(db: DB, parent_ids: Iterable[UUID]) -> ShopUnits:
     return units
 
 
-def create_shop_unit(db, /, *args, **kwargs) -> ShopUnit:
+def create_shop_unit(db: DB, /, *args: Any, **kwargs: Any) -> ShopUnit:
     unit = ShopUnit(*args, **kwargs)
+    unit.children = []
     db.add(unit)
     return unit
 
