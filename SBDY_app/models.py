@@ -22,13 +22,8 @@ from .schemas import ShopUnitType
 Base: DeclarativeMeta = declarative_base()
 
 
-class ShopUnit(Base):
-    __tablename__ = "shop"
-
+class BaseUnit:
     id: UUID = Column(UUIDType(), primary_key=True)  # type: ignore
-    parentId: Optional[UUID] = Column(  # type: ignore
-        UUIDType(), ForeignKey("shop.id"), nullable=True)
-    children: List[ShopUnit]
 
     name: str = Column(String)  # type: ignore
     date: datetime = Column(DateTime)  # type: ignore
@@ -47,3 +42,18 @@ class ShopUnit(Base):
                 kv[name] = f"[Error while getting - {e}]"
         pairs = (f"{name}={repr(value)}" for name, value in kv.items())
         return f"{type(self).__name__}({', '.join(pairs)})"
+
+
+class ShopUnit(Base, BaseUnit):
+    __tablename__ = "shop"
+
+    parentId: Optional[UUID] = Column(  # type: ignore
+        UUIDType(), ForeignKey("shop.id"), nullable=True)
+    children: List[ShopUnit]
+
+
+class StatUnit(Base, BaseUnit):
+    __tablename__ = "stat"
+
+    parentId: Optional[UUID] = Column(  # type: ignore
+        UUIDType(), ForeignKey("stat.id"), nullable=True)
