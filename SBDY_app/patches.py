@@ -76,4 +76,5 @@ def patch_request_response() -> None:
 def patch() -> None:
     patch_datetime_validation()
     patch_datetime_serialization()
-    patch_request_response()
+    # sometimes useful for debug, but let's turn it off for the other uses
+    # patch_request_response()
