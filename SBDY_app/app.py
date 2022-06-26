@@ -55,14 +55,16 @@ async def shutdown():
     await db_shutdown()
 
 
+# XXX: return status code 404?
 # security through obscurity + only works for testing
 @app.delete("/_cleanup_database_", include_in_schema=False)
-async def cleanup_database() -> str:
-    if options.DEV_MODE:
-        async with engine.begin() as conn:
-            await conn.run_sync(models.Base.metadata.drop_all)  # type: ignore
-            await conn.run_sync(models.Base.metadata.create_all)  # type: ignore
-    return "Successful database cleanup"
+async def cleanup_database() -> None:
+    if not options.DEV_MODE:
+        return
+
+    async with engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.drop_all)  # type: ignore
+        await conn.run_sync(models.Base.metadata.create_all)  # type: ignore
 
 
 def update_parents(parents: ShopUnits,
