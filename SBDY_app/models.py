@@ -28,7 +28,6 @@ class BaseUnit:
 
     type: ShopUnitType = Column(Enum(ShopUnitType))  # type: ignore
     price: int = Column(Integer)  # type: ignore
-    sub_offers_count: int = Column(Integer)  # type: ignore
 
     @classmethod
     def _fields(cls, *, exclude: Optional[Set[str]] = None) -> List[str]:
@@ -57,6 +56,8 @@ class ShopUnit(Base, BaseUnit):
     parentId: Optional[UUID] = Column(  # type: ignore
         UUIDType(), ForeignKey("shop.id"), nullable=True)
     children: List[ShopUnit]
+
+    sub_offers_count: int = Column(Integer)  # type: ignore
 
 
 class StatUnit(Base, BaseUnit):
