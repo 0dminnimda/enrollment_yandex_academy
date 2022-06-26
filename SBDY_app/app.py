@@ -20,6 +20,9 @@ logger = logging.getLogger(mod_name)
 
 
 def path_with_docs(decorator: AnyCallable, path: str, **kw) -> AnyCallable:
+    # TODO: for aesthetics add examples for errors and inputs
+    # https://fastapi.tiangolo.com/tutorial/schema-extra-example/
+
     docs = paths[path][decorator.__name__]
 
     docs.pop("requestBody", None)
