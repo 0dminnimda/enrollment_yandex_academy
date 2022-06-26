@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import random
 import string
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import _GenericAlias  # type: ignore
 from typing import Any, Generator, Optional, Type
@@ -171,12 +171,20 @@ def random_su_type() -> ShopUnitType:
     # return ShopUnitType.CATEGORY
 
 
+def random_date(start: datetime = datetime.min,
+                end: datetime = datetime.max) -> datetime:
+    delta = end - start
+    microseconds = ((delta.days * (24 * 3600) + delta.seconds) * 1000000
+                    + delta.microseconds)
+    return start + timedelta(microseconds=random.randrange(microseconds))
+
+
 factories = {
     str: random_string,
     UUID: uuid4,
     ShopUnitType: random_su_type,
     int: lambda: random.randint(0, 10**5),
-    datetime: datetime.today
+    datetime: random_date  # datetime.today
 }
 
 
