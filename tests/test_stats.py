@@ -1,10 +1,12 @@
 import json
 from datetime import datetime, timedelta
+from math import ceil
 from typing import Any
 from uuid import UUID
 
 from SBDY_app.patches import serialize_datetime
-from SBDY_app.schemas import Import, ImpRequest, StatResponse, StatUnit
+from SBDY_app.schemas import (Import, ImpRequest, ShopUnitType, StatResponse,
+                              StatUnit)
 
 from utils import ERROR_400, ERROR_404, Client, client, default, do_test, setup
 
@@ -102,6 +104,65 @@ def test_deletion(client: Client):
                         "date": serialize_datetime(data.updateDate)}]}
 
     response = client.stats(imp.id)
+    assert response.status_code == 200
+    assert response.json() == model
+
+
+def test_category_price(client: Client):
+    id1 = default(UUID)
+    imp = default(Import, id=id1, parentId=None,
+                  price=None, type=ShopUnitType.CATEGORY)
+    imp.price = None
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    model = {"items": []}
+    model["items"].append({
+        **json.loads(imp.json()), "price": 0,
+        "date": serialize_datetime(data.updateDate)})
+
+    response = client.stats(id1)
+    assert response.status_code == 200
+    assert response.json() == model
+
+    data = default(ImpRequest, items=[default(
+        Import, parentId=id1, price=420), imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    model["items"].append({
+        **json.loads(imp.json()), "price": 420,
+        "date": serialize_datetime(data.updateDate)})
+
+    response = client.stats(id1)
+    assert response.status_code == 200
+    assert response.json() == model
+
+    id2 = default(UUID)
+    data = default(ImpRequest, items=[default(
+        Import, id=id2, parentId=id1, price=69)])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    model["items"].append({
+        **json.loads(imp.json()), "price": ceil((420 + 69) / 2),
+        "date": serialize_datetime(data.updateDate)})
+
+    response = client.stats(id1)
+    assert response.status_code == 200
+    assert response.json() == model
+
+    data = default(ImpRequest, items=[default(
+        Import, id=id2, parentId=None, price=69)])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    model["items"].append({
+        **json.loads(imp.json()), "price": 420,
+        "date": serialize_datetime(data.updateDate)})
+
+    response = client.stats(id1)
     assert response.status_code == 200
     assert response.json() == model
 
