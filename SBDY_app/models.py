@@ -23,8 +23,6 @@ Base: DeclarativeMeta = declarative_base()
 
 
 class BaseUnit:
-    id: UUID = Column(UUIDType(), primary_key=True)  # type: ignore
-
     name: str = Column(String)  # type: ignore
     date: datetime = Column(DateTime)  # type: ignore
 
@@ -53,6 +51,7 @@ class BaseUnit:
 class ShopUnit(Base, BaseUnit):
     __tablename__ = "shop"
 
+    id: UUID = Column(UUIDType(), primary_key=True)  # type: ignore
     parentId: Optional[UUID] = Column(  # type: ignore
         UUIDType(), ForeignKey("shop.id"), nullable=True)
     children: List[ShopUnit]
@@ -61,5 +60,7 @@ class ShopUnit(Base, BaseUnit):
 class StatUnit(Base, BaseUnit):
     __tablename__ = "stat"
 
+    _unique_id = Column(Integer, primary_key=True, autoincrement=True)
+    id: UUID = Column(UUIDType())  # type: ignore
     parentId: Optional[UUID] = Column(  # type: ignore
-        UUIDType(), ForeignKey("stat.id"), nullable=True)
+        UUIDType(), nullable=True)
