@@ -225,7 +225,7 @@ async def statistic(id: UUID,
                     dateStart: datetime = datetime.min,
                     dateEnd: datetime = datetime.max,
                     db: DB = db_injection) -> StatResponse:
-    units = await crud.stat_units_by_date(db, id, dateStart, dateEnd)
-    if len(units) == 0:
+    if not await crud.shop_unit_exists(db, id):
         raise ItemNotFound
+    units = await crud.stat_units_by_date(db, id, dateStart, dateEnd)
     return StatResponse(items=units)
