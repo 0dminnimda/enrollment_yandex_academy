@@ -7,7 +7,7 @@ Database models
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Set
 from uuid import UUID
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
@@ -31,11 +31,13 @@ class BaseUnit:
     sub_offers_count: int = Column(Integer)  # type: ignore
 
     @classmethod
-    def _fields(cls) -> List[str]:
+    def _fields(cls, *, exclude: Optional[Set[str]] = None) -> List[str]:
+        if exclude is None:
+            exclude = set()
         result = cls.__annotations__.keys()
         if issubclass(cls, Base):
             result |= cls._sa_class_manager.keys()  # type: ignore
-        return sorted(result)
+        return sorted(result - exclude)
 
     def __repr__(self) -> str:
         kv = {}
