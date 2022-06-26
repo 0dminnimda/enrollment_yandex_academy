@@ -86,9 +86,9 @@ def setattrs(o: T, attrs: Dict[str, Any]) -> T:
     return o
 
 
-def recorded_unit_update(
+def update_unit(
     db: DB, date: datetime, imp: Import,
-    unit: Optional[models.ShopUnit], *,
+    unit: Optional[models.ShopUnit], *, record: bool,
     _kw: dict = {"date": None, "sub_offers_count": 0}
 ) -> models.ShopUnit:
 
@@ -106,7 +106,8 @@ def recorded_unit_update(
     else:
         raise ValueError(f"Unknown unit type: {unit.type}")
 
-    crud.create_stat_unit(db, result)
+    if record:
+        crud.create_stat_unit(db, result)
     return result
 
 
@@ -141,17 +142,15 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
                 # present in db, no change
                 pass
         else:
-            parents[id] = recorded_unit_update(
-                db, req.updateDate, imp_parent, parent)
+            parents[id] = update_unit(
+                db, req.updateDate, imp_parent, parent, record=False)
 
     # validate parent's type (can only be a category)
-    # and update parents's date
     for parent in parents.values():
         if parent.type != ShopUnitType.CATEGORY:
             logger.error(f"Parent {parent.id} is not a category:"
                          f" {parent.type} != {ShopUnitType.CATEGORY}")
             raise ValidationFailed
-        parent.date = req.updateDate
 
     offers: Dict[UUID, Import] = {id: imp for id, imp in items.items()
                                   if imp.type == ShopUnitType.OFFER}
@@ -171,16 +170,21 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
             update_parents(parents, imp.parentId, imp.price, count=1)
             update_parents(parents, offer.parentId, -offer.price, count=-1)
 
+    # update parents's date
+    for parent in parents.values():
+        parent.date = req.updateDate
+        crud.create_stat_unit(db, parent)
+
     # update offers
     for id, imp in offers.items():
-        recorded_unit_update(db, req.updateDate, imp, units.get(id, None))
+        update_unit(db, req.updateDate, imp, units.get(id, None), record=True)
 
     # update the rest of the categories
     for id in items.keys() - parents.keys() - offers.keys():
         imp = items[id]
         assert imp.type == ShopUnitType.CATEGORY
 
-        recorded_unit_update(db, req.updateDate, imp, units.get(id, None))
+        update_unit(db, req.updateDate, imp, units.get(id, None), record=True)
 
     await db.commit()
     return "Successful import"
