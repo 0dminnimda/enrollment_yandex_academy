@@ -15,6 +15,8 @@ def test_persistency():
     if PROFILE:
         return
 
+    original_mode = options.DEV_MODE
+
     id = default(UUID)
     data = default(ImpRequest, items=[default(Import, id=id, parentId=None)])
     model = {**json.loads(data.items[0].json()),
@@ -43,7 +45,7 @@ def test_persistency():
         ShopUnit(**response.json())  # no ValidationError
         assert response.json() == model
 
-    options.DEV_MODE = True
+    options.DEV_MODE = original_mode
 
 
 def test_nested(client: Client):
