@@ -7,8 +7,8 @@ from uuid import UUID
 from fastapi import FastAPI
 
 from . import __name__ as mod_name
-from . import crud, models
-from .database import db_injection, db_shutdown, db_startup
+from . import crud, models, options
+from .database import db_injection, db_shutdown, db_startup, engine
 from .docs import info, paths
 from .exceptions import ItemNotFound, ValidationFailed, add_exception_handlers
 from .schemas import (Error, Import, ImpRequest, ShopUnit, ShopUnitType,
@@ -53,6 +53,16 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await db_shutdown()
+
+
+# security through obscurity + only works for testing
+@app.delete("/_cleanup_database_", include_in_schema=False)
+async def cleanup_database() -> str:
+    if options.DEV_MODE:
+        async with engine.begin() as conn:
+            await conn.run_sync(models.Base.metadata.drop_all)  # type: ignore
+            await conn.run_sync(models.Base.metadata.create_all)  # type: ignore
+    return "Successful database cleanup"
 
 
 def update_parents(parents: ShopUnits,
