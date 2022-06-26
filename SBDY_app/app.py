@@ -78,16 +78,21 @@ def recorded_update_unit(
 ) -> models.ShopUnit:
 
     _kw["date"] = date
+
     if unit is None:
         # new
-        return crud.create_shop_unit(db, **_kw, **imp.dict())
+        result = crud.create_shop_unit(db, **_kw, **imp.dict())
     elif unit.type == ShopUnitType.CATEGORY:
         # change in db
-        return setattrs(unit, imp.dict(exclude={"price"}))
+        result = setattrs(unit, imp.dict(exclude={"price"}))
     elif unit.type == ShopUnitType.OFFER:
         # change in db
-        return setattrs(unit, {**_kw, **imp.dict()})
-    raise ValueError(f"Unknown unit type: {unit.type}")
+        result = setattrs(unit, {**_kw, **imp.dict()})
+    else:
+        raise ValueError(f"Unknown unit type: {unit.type}")
+
+    crud.create_stat_unit(db, result)
+    return result
 
 
 @path_with_docs(app.post, "/imports")
