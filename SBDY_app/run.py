@@ -17,9 +17,12 @@ DEBUGGING = "debugpy" in sys.modules
 
 
 def run(host: str = "localhost") -> None:
-    file = Path(__file__)
-    LOGFILE.open(mode="a", encoding="utf-8").write("\n")
+    config = UVICORN_CONFIG
+    if not options.DEV_MODE:
+        config = CONFIG
+        LOGFILE.open(mode="a", encoding="utf-8").write("\n")
 
+    file = Path(__file__)
     uvicorn.run(
         f"{file.stem}:app",
         app_dir=str(file.parent.absolute()),
@@ -27,7 +30,7 @@ def run(host: str = "localhost") -> None:
         port=80,
         reload=options.RELOAD,
         log_level="info",
-        log_config=UVICORN_CONFIG if options.DEV_MODE else CONFIG,
+        log_config=config,
         use_colors=options.DEV_MODE,
     )
 
