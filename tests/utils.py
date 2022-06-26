@@ -85,6 +85,9 @@ class Client:
         client.base_url = base_url  # type: ignore
         self.client = client
 
+    def cleanup_database(self):
+        return self.client.delete("/_cleanup_database_")
+
     def imports(self, data: str):
         return self.client.post("/imports", data=data)
 
@@ -143,6 +146,7 @@ def generate_client() -> Client:
 def client() -> Generator[Client, None, None]:
     options.DEV_MODE = True
     with generate_client() as client:
+        client.cleanup_database()
         yield client
 
 
