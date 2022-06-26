@@ -160,6 +160,8 @@ ERROR_404 = Error(code=404, message="Item not found")
 ### default ###
 
 def random_string() -> str:
+    # in case you want use:
+    # NORMAL_CHARS = string.digits + string.ascii_letters + string.whitespace
     return "".join(
         random.choice(string.printable)
         for _ in range(random.randint(5, 25)))
