@@ -56,6 +56,21 @@ class Query:
         return (cls.shop_units_by_date(start, end, with_end)
                 .filter(ShopUnit.type == ShopUnitType.OFFER))
 
+    @classmethod
+    def stat_units(cls, ids: Optional[List[UUID]]) -> Select:
+        selection = select(StatUnit)
+        if ids is None:
+            return selection
+        return selection.filter(StatUnit.id.in_(ids))  # type: ignore
+
+    @classmethod
+    def stat_units_by_date(cls, ids: Optional[List[UUID]], start: datetime,
+                           end: datetime, with_end: bool) -> Select:
+        selection = cls.stat_units(ids).filter(start <= StatUnit.date)
+        if with_end:
+            return selection.filter(StatUnit.date <= end)
+        return selection.filter(StatUnit.date < end)
+
 
 ### helpers ###
 
@@ -115,7 +130,7 @@ def several(units: ShopUnits, ids: Iterable[UUID]) -> ShopUnits:
 
 ### CRUD itself ###
 
-async def fetch_all(db: DB, selection: Select) -> List[ShopUnit]:
+async def fetch_all(db: DB, selection: Select) -> List[Any]:
     result: Result = await db.execute(selection)
     return result.scalars().all()
 
@@ -164,6 +179,17 @@ async def shop_units_parents(db: DB, parent_ids: Iterable[UUID]) -> ShopUnits:
     selection = Query.shop_units(list(parent_ids))
     units = await fetch_shop_units(db, selection, get_parents=True)
     return units
+
+
+async def stat_units(db: DB, id: UUID) -> List[StatUnit]:
+    selection = Query.shop_units([id])
+    return await fetch_all(db, selection)
+
+
+async def stat_units_by_date(db: DB, id: UUID, start: datetime, end: datetime,
+                             *, with_end: bool = False) -> List[StatUnit]:
+    selection = Query.stat_units_by_date([id], start, end, with_end)
+    return await fetch_all(db, selection)
 
 
 def create_shop_unit(db: DB, /, *args: Any, **kwargs: Any) -> ShopUnit:
