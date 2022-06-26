@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from SBDY_app.patches import serialize_datetime
@@ -16,13 +17,60 @@ def test_ok(client: Client):
     response = client.imports(data.json())
     assert response.status_code == 200
 
-    model = {"items": [{
-        **json.loads(data.items[0].json()),
-        "date": serialize_datetime(data.updateDate)}]}
+    model = {"items": [{**json.loads(imp.json()),
+                        "date": serialize_datetime(data.updateDate)}]}
 
     response = client.stats(imp.id)
     assert response.status_code == 200
     assert response.json() == model
+
+
+def shifted_stat(client: Client, id: Any, start: datetime,
+                 end: datetime, shift: timedelta):
+    return client.stats(id, start + shift, end + shift)
+
+
+def test_boundaries(client: Client):
+    date = default(datetime)
+    imp = default(Import, parentId=None)
+    response = client.imports(default(
+        ImpRequest, items=[imp], updateDate=date).json())
+    assert response.status_code == 200
+
+    start, end = date - timedelta(days=1), date
+    model = {"items": [{**json.loads(imp.json()),
+                        "date": serialize_datetime(date)}]}
+
+    response = client.stats(imp.id, start)
+    assert response.status_code == 200
+    assert response.json() == model
+
+    response = client.stats(imp.id, start, end)
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
+
+    response = shifted_stat(client, imp.id, start, end,
+                            timedelta(milliseconds=1))
+    assert response.status_code == 200
+    assert response.json() == model
+
+    response = shifted_stat(client, imp.id, start, end, timedelta(days=1))
+    assert response.status_code == 200
+    assert response.json() == model
+
+    response = shifted_stat(client, imp.id, start, end,
+                            timedelta(days=1, milliseconds=1))
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
+
+    response = shifted_stat(client, imp.id, start, end, -timedelta(days=1))
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
+
+    response = shifted_stat(client, imp.id, start, end,
+                            -timedelta(milliseconds=1))
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
 
 
 def test_nonexistent(client: Client):
