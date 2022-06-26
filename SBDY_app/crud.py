@@ -11,7 +11,7 @@ from sqlalchemy.sql import Select
 
 from . import __name__ as mod_name
 from .exceptions import NotEnoughResultsFound
-from .models import ShopUnit
+from .models import ShopUnit, StatUnit
 from .schemas import ShopUnitType
 from .typedefs import DB, ShopUnits
 
@@ -168,6 +168,13 @@ async def shop_units_parents(db: DB, parent_ids: Iterable[UUID]) -> ShopUnits:
 def create_shop_unit(db: DB, /, *args: Any, **kwargs: Any) -> ShopUnit:
     unit = ShopUnit(*args, **kwargs)
     unit.children = []
+    db.add(unit)
+    return unit
+
+
+def create_stat_unit(db: DB, shop_unit: ShopUnit) -> StatUnit:
+    unit = StatUnit(**{name: getattr(shop_unit, name)
+                       for name in StatUnit._fields(exclude={"_unique_id"})})
     db.add(unit)
     return unit
 
