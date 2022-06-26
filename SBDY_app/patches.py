@@ -56,7 +56,9 @@ def request_response(func: Callable):
 
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
         request = Request(scope, receive=receive, send=send)
-        logger.info(f"{await request.body()!r}")
+        body = await request.body()
+        if body:
+            logger.info(f"{body!r}")
         if is_coroutine:
             response = await func(request)
         else:
