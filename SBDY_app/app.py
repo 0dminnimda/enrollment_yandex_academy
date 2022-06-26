@@ -71,7 +71,7 @@ def setattrs(o: T, attrs: Dict[str, Any]) -> T:
     return o
 
 
-def recorded_update_unit(
+def recorded_unit_update(
     db: DB, date: datetime, imp: Import,
     unit: Optional[models.ShopUnit], *,
     _kw: dict = {"date": None, "sub_offers_count": 0}
@@ -126,7 +126,7 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
                 # present in db, no change
                 pass
         else:
-            parents[id] = recorded_update_unit(
+            parents[id] = recorded_unit_update(
                 db, req.updateDate, imp_parent, parent)
 
     # validate parent's type (can only be a category)
@@ -158,14 +158,14 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
 
     # update offers
     for id, imp in offers.items():
-        recorded_update_unit(db, req.updateDate, imp, units.get(id, None))
+        recorded_unit_update(db, req.updateDate, imp, units.get(id, None))
 
     # update the rest of the categories
     for id in items.keys() - parents.keys() - offers.keys():
         imp = items[id]
         assert imp.type == ShopUnitType.CATEGORY
 
-        recorded_update_unit(db, req.updateDate, imp, units.get(id, None))
+        recorded_unit_update(db, req.updateDate, imp, units.get(id, None))
 
     return "Successful import"
 
