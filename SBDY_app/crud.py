@@ -43,6 +43,10 @@ class Query:
         return selection.filter(ShopUnit.id.in_(ids))  # type: ignore
 
     @classmethod
+    def shop_unit_id(cls, id: UUID) -> Select:
+        return select(ShopUnit.id).filter(ShopUnit.id == id)
+
+    @classmethod
     def shop_units_by_date(cls, start: datetime, end: datetime,
                            with_end: bool) -> Select:
         selection = cls.shop_units(None).filter(start <= ShopUnit.date)
@@ -147,6 +151,11 @@ async def fetch_shop_units(db: DB, selection: Select, *,
         selection = Query.get_parents(selection)
     return assemble_shop_units(
         await fetch_all(db, selection), add_children=get_children)
+
+
+async def shop_unit_exists(db: DB, id: UUID) -> bool:
+    selection = Query.shop_unit_id(id)
+    return len(await fetch_all(db, selection)) > 0
 
 
 async def shop_unit(db: DB, id: UUID, *,
