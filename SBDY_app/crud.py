@@ -1,6 +1,7 @@
 import logging
 from asyncio import gather
 from datetime import datetime
+from math import ceil
 from typing import Any, Iterable, List, Optional, Union
 from uuid import UUID
 
@@ -173,8 +174,11 @@ def create_shop_unit(db: DB, /, *args: Any, **kwargs: Any) -> ShopUnit:
 
 
 def create_stat_unit(db: DB, shop_unit: ShopUnit) -> StatUnit:
-    unit = StatUnit(**{name: getattr(shop_unit, name)
-                       for name in StatUnit._fields(exclude={"_unique_id"})})
+    attrs = {name: getattr(shop_unit, name)
+             for name in StatUnit._fields(exclude={"_unique_id"})}
+    if shop_unit.sub_offers_count != 0:
+        attrs["price"] = ceil(shop_unit.price / shop_unit.sub_offers_count)
+    unit = StatUnit(**attrs)
     db.add(unit)
     return unit
 
