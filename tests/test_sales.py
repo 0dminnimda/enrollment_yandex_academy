@@ -23,19 +23,19 @@ def test_boundaries(client: Client):
         ImpRequest, items=[imp], updateDate=date).json())
     assert response.status_code == 200
 
-    data = {"items": [{**json.loads(imp.json()),
-                       "date": serialize_datetime(date)}]}
+    model = {"items": [{**json.loads(imp.json()),
+                        "date": serialize_datetime(date)}]}
     response = client.sales(date)
     assert response.status_code == 200
-    assert response.json() == data
+    assert response.json() == model
 
     response = client.sales(date + timedelta(milliseconds=1))
     assert response.status_code == 200
-    assert response.json() == data
+    assert response.json() == model
 
     response = client.sales(date + timedelta(days=1))
     assert response.status_code == 200
-    assert response.json() == data
+    assert response.json() == model
 
     response = client.sales(date + timedelta(days=1, milliseconds=1))
     assert response.status_code == 200
