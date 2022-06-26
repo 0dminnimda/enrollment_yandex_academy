@@ -175,7 +175,7 @@ async def delete(id: UUID, db: DB = db_injection) -> str:
     result = await crud.shop_unit(db, id)
     if result is None:
         raise ItemNotFound
-    await crud.delete_shop_units(db, result.values())
+    await crud.delete_units(db, result.values())
 
     unit = result[id]
     if unit.parentId:

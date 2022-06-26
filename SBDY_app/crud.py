@@ -1,7 +1,7 @@
 import logging
 from asyncio import gather
 from datetime import datetime
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional, Union
 from uuid import UUID
 
 from sqlalchemy.engine import Result
@@ -179,7 +179,8 @@ def create_stat_unit(db: DB, shop_unit: ShopUnit) -> StatUnit:
     return unit
 
 
-async def delete_shop_units(db: DB, units: Iterable[ShopUnit]) -> None:
+async def delete_units(db: DB,
+                       units: Iterable[Union[ShopUnit, ShopUnit]]) -> None:
     tasks = [db.delete(unit) for unit in units]
     await gather(*tasks)
     await db.flush()
