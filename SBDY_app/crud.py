@@ -191,7 +191,7 @@ async def shop_units_parents(db: DB, parent_ids: Iterable[UUID]) -> ShopUnits:
 
 
 async def stat_units(db: DB, id: UUID) -> List[StatUnit]:
-    selection = Query.shop_units([id])
+    selection = Query.stat_units([id])
     return await fetch_all(db, selection)
 
 

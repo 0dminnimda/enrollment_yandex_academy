@@ -73,6 +73,39 @@ def test_boundaries(client: Client):
     assert response.json() == {"items": []}
 
 
+def test_deletion(client: Client):
+    imp = default(Import, parentId=None)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    model = {"items": [{**json.loads(imp.json()),
+                        "date": serialize_datetime(data.updateDate)}]}
+
+    response = client.stats(imp.id)
+    assert response.status_code == 200
+    assert response.json() == model
+
+    response = client.delete(imp.id)
+    assert response.status_code == 200
+
+    response = client.stats(imp.id)
+    assert response.status_code == 404
+    assert response.json() == ERROR_404
+
+    imp = default(Import, id=imp.id, parentId=None)
+    data = default(ImpRequest, items=[imp])
+    response = client.imports(data.json())
+    assert response.status_code == 200
+
+    model = {"items": [{**json.loads(imp.json()),
+                        "date": serialize_datetime(data.updateDate)}]}
+
+    response = client.stats(imp.id)
+    assert response.status_code == 200
+    assert response.json() == model
+
+
 def test_nonexistent(client: Client):
     response = client.stats(default(UUID))
     assert response.status_code == 404
