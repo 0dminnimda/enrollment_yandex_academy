@@ -4,6 +4,7 @@ Things that simplify the testing process and help with it
 
 from __future__ import annotations
 
+import json
 import random
 import string
 from datetime import datetime, timedelta
@@ -89,7 +90,7 @@ class Client:
         return self.client.delete("/_cleanup_database_")
 
     def imports(self, data: str):
-        return self.client.post("/imports", data=data)
+        return self.client.post("/imports", json=json.loads(data))
 
     def delete(self, id: Any):
         return self.client.delete(f"/delete/{id}")
