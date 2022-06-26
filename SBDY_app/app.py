@@ -182,6 +182,7 @@ async def imports(req: ImpRequest, db: DB = db_injection) -> str:
 
         recorded_unit_update(db, req.updateDate, imp, units.get(id, None))
 
+    await db.commit()
     return "Successful import"
 
 
@@ -198,6 +199,7 @@ async def delete(id: UUID, db: DB = db_injection) -> str:
         parents = await crud.shop_unit_parents(db, unit.parentId)
         update_parents(parents, unit.parentId, -unit.price, count=-1)
 
+    await db.commit()
     return "Successful deletion"
 
 

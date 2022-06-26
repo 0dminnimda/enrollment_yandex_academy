@@ -26,8 +26,6 @@ async def get_db() -> AsyncGenerator[DB, None]:
             except Exception:
                 await session.rollback()
                 raise
-            else:
-                await session.commit()
 
 db_injection = Depends(get_db)
 
